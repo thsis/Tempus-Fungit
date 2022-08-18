@@ -7,7 +7,7 @@ from adafruit_bme280 import basic as adafruit_bme280
 
 # Create sensor object, using the board's default I2C bus.
 i2c = board.I2C()  # uses board.SCL and board.SDA
-bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 
 # OR create sensor object, using the board's default SPI bus.
 # spi = board.SPI()
