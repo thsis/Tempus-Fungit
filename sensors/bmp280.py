@@ -1,31 +1,19 @@
-# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
-# SPDX-License-Identifier: MIT
-
-"""Simpletest Example that shows how to get temperature,
-   pressure, and altitude readings from a BMP280"""
-import time
-import board
-
-# import digitalio # For use with SPI
 import adafruit_bmp280
+from sensors import Sensor, I2C
 
-# Create sensor object, communicating over the board's default I2C bus
-i2c = board.I2C()  # uses board.SCL and board.SDA
-bmp280 = adafruit_bmp280.Adafruit_BMP280_I2C(i2c, address=0x76)
 
-# OR Create sensor object, communicating over the board's default SPI bus
-# spi = board.SPI()
-# bmp_cs = digitalio.DigitalInOut(board.D10)
-# bmp280 = adafruit_bmp280.Adafruit_BMP280_SPI(spi, bmp_cs)
+class BMP280(Sensor):
+    measures = ["temperature", "pressure", "altitude"]
+    sea_level_pressure = 1010.2
 
-# change this to match the location's pressure (hPa) at sea level
-bmp280.sea_level_pressure = 1013.25
+    def __init__(self, address):
+        super(BMP280, self).__init__()
+        self.device = adafruit_bmp280.Adafruit_BMP280_I2C(I2C, address=address)
+        self.device.sea_level_pressure = self.sea_level_pressure
 
-while True:
-    try:
-        print("\nTemperature: %0.1f C" % bmp280.temperature)
-        print("Pressure: %0.1f hPa" % bmp280.pressure)
-        print("Altitude = %0.2f meters" % bmp280.altitude)
-        time.sleep(2)
-    except KeyboardInterrupt:
-        break
+
+if __name__ == "__main__":
+    # todo: read i2c-address from config file
+    bmp280 = BMP280(address=0x76)
+    temp, press, alt = bmp280.read(retries=5)
+    print(f"Temperature: {temp} °C", f"Pressure: {press} hPa", f"Altitude: {alt} m", sep="\n")
