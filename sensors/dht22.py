@@ -3,10 +3,10 @@ from sensors import Sensor
 
 
 class DHT22(Sensor):
-    measures = ["temperature", "humidity"]
 
     def __init__(self, pin):
         super(DHT22, self).__init__()
+        self.measures = ["temperature", "humidity"]
         self.device = adafruit_dht.DHT22(pin)
 
 

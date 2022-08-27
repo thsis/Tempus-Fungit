@@ -3,11 +3,11 @@ from sensors import Sensor, I2C
 
 
 class BMP280(Sensor):
-    measures = ["temperature", "pressure", "altitude"]
-    sea_level_pressure = 1010.2
 
     def __init__(self, address):
         super(BMP280, self).__init__()
+        self.measures = ["temperature", "pressure", "altitude"]
+        self.sea_level_pressure = 1010.2
         self.device = adafruit_bmp280.Adafruit_BMP280_I2C(I2C, address=address)
         self.device.sea_level_pressure = self.sea_level_pressure
 
