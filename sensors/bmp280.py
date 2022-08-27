@@ -4,16 +4,19 @@ from sensors import Sensor, I2C
 
 class BMP280(Sensor):
 
-    def __init__(self, address):
-        super(BMP280, self).__init__()
-        self.measures = ["temperature", "pressure", "altitude"]
+    def __init__(self, address, site):
+        super(BMP280, self).__init__(site=site)
+        self.var2unit = {"temperature": "C",
+                         "pressure": "hPa",
+                         "altitude": "m"}
         self.sea_level_pressure = 1010.2
         self.device = adafruit_bmp280.Adafruit_BMP280_I2C(I2C, address=address)
         self.device.sea_level_pressure = self.sea_level_pressure
 
 
 if __name__ == "__main__":
-    # todo: read i2c-address from config file
-    bmp280 = BMP280(address=0x76)
-    temp, press, alt = bmp280.read(retries=5)
-    print(f"Temperature: {temp:.2f} °C", f"Pressure: {press:.2f} hPa", f"Altitude: {alt:.2f} m", sep="\n")
+    from utilities import CONFIG
+
+    bmp280 = BMP280(address=CONFIG["SENSORS"]["address_bmp280"], site=CONFIG["GENERAL"]["site"])
+    readings = bmp280.read(retries=5)
+    print(*readings, sep="\n")

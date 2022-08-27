@@ -1,20 +1,52 @@
+import datetime
+
 import board
+import pandas as pd
+from datetime import datetime
+from dataclasses import dataclass
+
+
+@dataclass
+class Record:
+    site: str
+    taken_at: datetime
+    sensor: str
+    variable: str
+    unit: str
+    value: float
+
+    def __init__(self, site, sensor, variable, unit, value):
+        self.site = site
+        self.taken_at = datetime.now()
+        self.sensor = sensor
+        self.variable = variable
+        self.unit = unit
+        self.value = value
+
+    def __str__(self):
+        taken_at = self.taken_at.strftime("%Y-%m-%d %H:%M:%S")
+        return f"{self.variable}: {self.value:.2f} {self.unit}, taken at {taken_at}."
 
 
 class Sensor:
-    def __init__(self):
-        self.measures = []
-        self.device = {}
+    def __init__(self, site):
+        self.site = site
+        self.var2unit = dict()
+        self.device = dict()
         super(Sensor, self).__init__()
 
     def read(self, retries=5):
+        dev = self.device
+        site = self.site
+        sensor = self.__class__.__name__
         for _ in range(retries):
             try:
-                return (getattr(self.device, measure) for measure in self.measures)
+                reading = [Record(site, sensor, var, unit, getattr(dev, var)) for var, unit in self.var2unit.items()]
+                return reading
             except RuntimeError:
                 continue
         else:
-            return (None for _ in self.measures)
+            return (None for _ in self.var2unit)
 
 
 I2C = board.I2C()
