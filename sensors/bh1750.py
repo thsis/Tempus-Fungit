@@ -13,4 +13,4 @@ class BH1750(Sensor):
 if __name__ == "__main__":
     bh1750 = BH1750(address=0x23)
     lux = bh1750.read(retries=5)
-    print(f"Light Intensity: {lux:2.f} Lux")
+    print(f"Light Intensity: {lux:.2f} Lux")

@@ -16,4 +16,4 @@ if __name__ == "__main__":
     # todo: read i2c-address from config file
     bmp280 = BMP280(address=0x76)
     temp, press, alt = bmp280.read(retries=5)
-    print(f"Temperature: {temp} °C", f"Pressure: {press} hPa", f"Altitude: {alt} m", sep="\n")
+    print(f"Temperature: {temp:.2f} °C", f"Pressure: {press:.2f} hPa", f"Altitude: {alt:.2f} m", sep="\n")
