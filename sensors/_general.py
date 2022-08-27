@@ -24,8 +24,11 @@ class Record:
         self.value = value
 
     def __str__(self):
-        taken_at = self.taken_at.strftime("%Y-%m-%d %H:%M:%S")
-        return f"{self.variable.ljust(20)}: {self.value:.2f} {self.unit}, taken at {taken_at}."
+        var_part = f"{self.variable}:".ljust(7)
+        val_part = f"{self.value:.2f}".rjust(7)
+        taken_at_part = f"taken at {self.taken_at.strftime('%Y-%m-%d %H:%M:%S')}."
+
+        return f"{var_part} {val_part} {taken_at_part}"
 
 
 class Sensor:
