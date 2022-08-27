@@ -17,6 +17,6 @@ class BMP280(Sensor):
 if __name__ == "__main__":
     from utilities import CONFIG
 
-    bmp280 = BMP280(address=CONFIG["SENSORS"]["address_bmp280"], site=CONFIG["GENERAL"]["site"])
+    bmp280 = BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16), site=CONFIG.get("GENERAL", "site"))
     readings = bmp280.read(retries=5)
     print(*readings, sep="\n")
