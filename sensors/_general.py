@@ -63,6 +63,7 @@ class SensorArray:
 
     def __take_readings(self):
         readings = [sensor.read(retries=self.retries) for sensor in self.sensors]
+        print(*readings, sep="\n")
         self.buffer.extend(readings)
 
     def __flush_buffer(self):
@@ -75,6 +76,8 @@ class SensorArray:
             try:
                 self.__take_readings()
             except KeyboardInterrupt:
+                break
+            finally:
                 self.__flush_buffer()
 
 
