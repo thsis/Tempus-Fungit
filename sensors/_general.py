@@ -64,23 +64,21 @@ class SensorArray:
     def __take_readings(self):
         readings = itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors])
         print(*readings, sep="\n")
-        self.buffer.extend(readings)
+        self.buffer.extend(list(readings))
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
         print(data.tail())
         data.to_csv(self.outpath, index=False, mode="a")
-        self.__reset_buffer()
+        return data
 
     def read(self):
-        while True:
-            try:
-                self.__take_readings()
-            except KeyboardInterrupt:
-                break
-            finally:
-                print("Flushing Buffer!")
-                self.__flush_buffer()
+        self.__take_readings()
+        print("length of buffer:", len(self.buffer))
+        data = self.__flush_buffer()
+        print(data.tail())
+        self.__reset_buffer()
+        print("length of buffer:", len(self.buffer))
 
 
 
