@@ -68,6 +68,7 @@ class SensorArray:
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
+        print(data.tail())
         data.to_csv(self.outpath, index=False)
         self.__reset_buffer()
 
@@ -75,9 +76,10 @@ class SensorArray:
         while True:
             try:
                 self.__take_readings()
-            except (KeyboardInterrupt, Exception):
+            except KeyboardInterrupt:
                 break
             finally:
+                print("Flushing Buffer!")
                 self.__flush_buffer()
 
 
