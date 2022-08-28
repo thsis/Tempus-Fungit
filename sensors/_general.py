@@ -23,7 +23,7 @@ class Record:
         self.value = value
 
     def __str__(self):
-        var_part = f"{self.variable}[{self.unit}]:".ljust(15)
+        var_part = f"{self.variable}[{self.unit}]:".ljust(21)
         val_part = f"{self.value:.2f}".rjust(6)
         taken_at_part = f"taken at {self.taken_at.strftime('%Y-%m-%d %H:%M:%S')}."
 
@@ -69,7 +69,7 @@ class SensorArray:
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
         data.to_csv(self.outpath, index=False)
-        self.__flush_buffer()
+        self.__reset_buffer()
 
     def read(self):
         while True:
