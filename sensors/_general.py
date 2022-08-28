@@ -1,4 +1,4 @@
-import datetime
+import itertools
 import board
 import pandas as pd
 from datetime import datetime
@@ -62,7 +62,7 @@ class SensorArray:
         self.buffer = []
 
     def __take_readings(self):
-        readings = [sensor.read(retries=self.retries) for sensor in self.sensors]
+        readings = itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors])
         print(*readings, sep="\n")
         self.buffer.extend(readings)
 
