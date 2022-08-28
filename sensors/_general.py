@@ -51,6 +51,34 @@ class Sensor:
             return (None for _ in self.var2unit)
 
 
+class SensorArray:
+    def __init__(self, sensors, outpath, retries=5):
+        self.sensors = sensors
+        self.outpath = outpath
+        self.retries = retries
+        self.buffer = []
+
+    def __reset_buffer(self):
+        self.buffer = []
+
+    def __take_readings(self):
+        readings = [sensor.read(retries=self.retries) for sensor in self.sensors]
+        self.buffer.extend(readings)
+
+    def __flush_buffer(self):
+        data = pd.DataFrame(self.buffer)
+        data.to_csv(self.outfile, index=False)
+        self.__flush_buffer()
+
+    def read(self):
+        while True:
+            try:
+                self.__take_readings()
+            except KeyboardInterrupt:
+                self.__flush_buffer()
+
+
+
 I2C = board.I2C()
 PINS = {"0": board.D0,
         "1": board.D1,
