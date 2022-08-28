@@ -63,13 +63,13 @@ class SensorArray:
 
     def __take_readings(self):
         readings = itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors])
-        print(readings)
+        print(*readings, sep="\n")
         self.buffer.extend(readings)
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
         print(data.tail())
-        data.to_csv(self.outpath, index=False)
+        data.to_csv(self.outpath, index=False, mode="a")
         self.__reset_buffer()
 
     def read(self):
