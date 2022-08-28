@@ -75,7 +75,7 @@ class SensorArray:
         while True:
             try:
                 self.__take_readings()
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, Exception):
                 break
             finally:
                 self.__flush_buffer()
