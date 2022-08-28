@@ -4,6 +4,7 @@ import itertools
 import time
 
 import board
+import numpy as np
 import pandas as pd
 from datetime import datetime
 from dataclasses import dataclass
@@ -58,9 +59,9 @@ class Sensor:
 
 
 class SensorArray:
-    def __init__(self, sensors, outpath, retries=5):
+    def __init__(self, sensors, out_path, retries=5):
         self.sensors = sensors
-        self.outpath = outpath
+        self.out_path = out_path
         self.retries = retries
         self.buffer = []
 
@@ -69,24 +70,54 @@ class SensorArray:
 
     def __take_readings(self):
         readings = list(itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors]))
-        print(*readings, sep="\n")
         self.buffer += readings
 
+    def __read_previous_data(self):
+        if os.path.exists(self.out_path):
+            return pd.read_csv(self.out_path, parse_dates=["taken_at"])
+        else:
+            return None
+
+    def __read_buffer(self):
+        return pd.DataFrame(self.buffer)
+
+    def __get_data(self):
+        old = self.__read_previous_data()
+        new = self.__read_buffer()
+        return pd.concat([old, new])
+
+    def __summarize(self):
+        data = self.__get_data()
+
+        ns5min = 5 * 60 * 1000000000  # 5 minutes in nanoseconds
+        summary = (data
+                   .fillna({"site": ""})
+                   .assign(time=lambda x: pd.to_datetime((x.taken_at.astype(np.int64) // ns5min + 1) * ns5min))
+                   .pivot_table(index=["site", "time"], columns=["variable"], values="value", aggfunc=np.mean)
+                   .reset_index())
+        return summary
+
     def __flush_buffer(self):
-        data = pd.DataFrame(self.buffer)
-        data.to_csv(self.outpath, index=False, mode="a", header=not os.path.exists(self.outpath))
+        out_path_exists = os.path.exists(self.out_path)
+        data = self.__summarize()
+        data.to_csv(self.out_path, index=False,
+                    mode="a" if out_path_exists else "w",  # if file already exists, append
+                    header=not out_path_exists)  # if file exists already, don't include header
+
         return data
 
-    def read(self, delay=5, flush_after=5):
+    def read(self, delay=5, interval=5):
+        # flush buffer after each interval has passed
+        flush_after = interval * 60 // delay + 1
         while True:
             try:
                 for _ in range(flush_after):
                     self.__take_readings()
+                    time.sleep(delay)
 
-                data = self.__flush_buffer()
-                print(data.tail())
+                self.__flush_buffer()
                 self.__reset_buffer()
-                time.sleep(delay)
+
             except Exception as e:
                 logger.exception(e)
                 self.__flush_buffer()
