@@ -67,7 +67,7 @@ class SensorArray:
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
-        data.to_csv(self.outfile, index=False)
+        data.to_csv(self.outpath, index=False)
         self.__flush_buffer()
 
     def read(self):
