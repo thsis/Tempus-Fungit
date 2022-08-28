@@ -12,5 +12,5 @@ SENSORS = [
     BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16), site=CONFIG.get("GENERAL", "site"))
 ]
 
-sensor_array = SensorArray(SENSORS, outpath=DATA_PATH, retries=5)
+sensor_array = SensorArray(SENSORS, out_path=DATA_PATH, retries=5)
 sensor_array.read()
