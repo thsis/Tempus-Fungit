@@ -1,8 +1,14 @@
+import os
+import logging
 import itertools
+import time
+
 import board
 import pandas as pd
 from datetime import datetime
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -68,18 +74,24 @@ class SensorArray:
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
-        print(data.tail())
-        data.to_csv(self.outpath, index=False, mode="a")
+        data.to_csv(self.outpath, index=False, mode="a", header=not os.path.exists(self.outpath))
         return data
 
-    def read(self):
-        self.__take_readings()
-        print("length of buffer:", len(self.buffer))
-        data = self.__flush_buffer()
-        print(data.tail())
-        self.__reset_buffer()
-        print("length of buffer:", len(self.buffer))
+    def read(self, delay=5, flush_after=5):
+        while True:
+            try:
+                for _ in range(flush_after):
+                    self.__take_readings()
 
+                data = self.__flush_buffer()
+                print(data.tail())
+                self.__reset_buffer()
+                time.sleep(delay)
+            except Exception as e:
+                logger.exception(e)
+                self.__flush_buffer()
+            except KeyboardInterrupt:
+                self.__flush_buffer()
 
 
 I2C = board.I2C()
