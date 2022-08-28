@@ -62,9 +62,9 @@ class SensorArray:
         self.buffer = []
 
     def __take_readings(self):
-        readings = itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors])
+        readings = list(itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors]))
         print(*readings, sep="\n")
-        self.buffer = self.buffer.extend(list(readings))
+        self.buffer += readings
 
     def __flush_buffer(self):
         data = pd.DataFrame(self.buffer)
