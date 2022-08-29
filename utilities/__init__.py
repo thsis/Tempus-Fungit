@@ -1,11 +1,3 @@
-import os
-from configparser import ConfigParser
-from pathlib import Path
+from ._general import get_abs_path, CONFIG
+from ._datatypes import Record
 
-
-def get_abs_path(*args):
-    return os.path.join(Path(__name__).parent.parent, *args)
-
-
-CONFIG = ConfigParser()
-CONFIG.read(get_abs_path("config.ini"))
