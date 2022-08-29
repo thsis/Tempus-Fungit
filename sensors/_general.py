@@ -69,15 +69,15 @@ class SensorArray:
                    .fillna({"site": ""})
                    .assign(time=lambda x: pd.to_datetime((x.taken_at.astype(np.int64) // ns5min + 1) * ns5min))
                    .pivot_table(index=["site", "time"], columns=["variable"], values="value", aggfunc=np.mean)
-                   .reset_index())
+                   .reset_index()
+                   .drop_duplicates(subset=["site", "time"]))
         return summary
 
     def __flush_buffer(self):
-        out_path_exists = os.path.exists(self.out_path)
         data = self.__summarize()
-        data.to_csv(self.out_path, index=False,
-                    mode="a" if out_path_exists else "w",  # if file already exists, append
-                    header=not out_path_exists)  # if file exists already, don't include header
+        data.to_csv(self.out_path, index=False)
+        # todo: convert print to log
+        print(data.tail())
 
         return data
 
