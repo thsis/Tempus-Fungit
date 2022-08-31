@@ -8,7 +8,7 @@ class BH1750(Sensor):
         super(BH1750, self).__init__(site=site)
         self.var2unit = {"light_intensity": "Lux"}
         self.device = adafruit_bh1750.BH1750(I2C, address=address)
-        # for readability reasons: copy default name for the sensor reading
+        # for readability reasons: copy default name for variable
         self.device.light_intensity = self.device.lux
 
 

@@ -74,12 +74,15 @@ class SensorArray:
         return summary
 
     def __flush_buffer(self):
-        data = self.__summarize()
-        data.to_csv(self.out_path, index=False)
-        # todo: convert print to log
-        print(data.tail())
+        if len(self.buffer) > 0:
+            data = self.__summarize()
+            data.to_csv(self.out_path, index=False)
+            # todo: convert print to log
+            print(data.tail())
 
-        return data
+            return data
+        else:
+            return None
 
     def read(self, delay=5, interval=5):
         # flush buffer after each interval has passed
@@ -96,8 +99,10 @@ class SensorArray:
             except Exception as e:
                 logger.exception(e)
                 self.__flush_buffer()
+                raise e
             except KeyboardInterrupt:
                 self.__flush_buffer()
+                break
 
 
 I2C = board.I2C()
