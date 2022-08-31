@@ -3,7 +3,6 @@ import sys
 import logging
 import itertools
 import time
-
 import board
 import numpy as np
 import pandas as pd
@@ -78,8 +77,6 @@ class SensorArray:
         if len(self.buffer) > 0:
             data = self.__summarize()
             data.to_csv(self.out_path, index=False)
-            # todo: convert print to log
-            print(data.tail())
 
             return data
         else:
