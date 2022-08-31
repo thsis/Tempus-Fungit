@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import itertools
 import time
@@ -91,7 +92,10 @@ class SensorArray:
             try:
                 for _ in range(flush_after):
                     self.__take_readings()
+                    summary = self.__summarize()
+                    print(summary)
                     time.sleep(delay)
+                    sys.stdout.write(f"\033[{len(summary)+1}F")
 
                 self.__flush_buffer()
                 self.__reset_buffer()
