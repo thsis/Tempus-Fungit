@@ -46,6 +46,7 @@ class SensorArray:
     def __take_readings(self):
         readings = list(itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors]))
         print(*readings, sep="\n")
+        print()
         self.buffer += readings
 
     def __read_previous_data(self):
