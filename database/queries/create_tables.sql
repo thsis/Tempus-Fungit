@@ -17,7 +17,11 @@ CREATE TABLE "experiments"."dim_strains" (
 CREATE TABLE "experiments"."dim_agar_plates" (
   "agar_plate_id" SERIAL PRIMARY KEY,
   "medium_id" int,
+  "medium_amount" float,
+  "mediium_unit" text,
   "starter_id" int,
+  "starter_amount" float,
+  "starter_unit" text,
   "disinfectant_id" int,
   "container_area_mm2" float,
   "container_height_mm" float,
@@ -30,7 +34,11 @@ CREATE TABLE "experiments"."dim_agar_plates" (
 CREATE TABLE "experiments"."dim_liquid_cultures" (
   "liquid_culture_id" SERIAL PRIMARY KEY,
   "medium_id" int,
+  "medium_amount" float,
+  "medium_unit" text,
   "starter_id" int,
+  "starter_amount" float,
+  "starter_unit" text,
   "disinfectant_id" int,
   "container_area_mm2" float,
   "container_area_shape" text,
@@ -44,7 +52,11 @@ CREATE TABLE "experiments"."dim_liquid_cultures" (
 CREATE TABLE "experiments"."dim_grain_spawn" (
   "grain_spawn_id" SERIAL PRIMARY KEY,
   "medium_id" int,
+  "medium_amount" float,
+  "midium_unit" text,
   "starter_id" int,
+  "starter_amount" float,
+  "starter_unit" text,
   "disinfectant_id" int,
   "container_area_mm2" float,
   "container_area_shape" text,
@@ -58,7 +70,11 @@ CREATE TABLE "experiments"."dim_grain_spawn" (
 CREATE TABLE "experiments"."dim_blocks" (
   "block_id" SERIAL PRIMARY KEY,
   "medium_id" int,
+  "medium_amount" float,
+  "medium_unit" text,
   "starter_id" int,
+  "starter_amount" float,
+  "starter_unit" text,
   "disinfectant_id" int,
   "container_area_mm2" float,
   "container_area_shape" text,
@@ -140,6 +156,7 @@ CREATE TABLE "sites"."fct_site_contents" (
   "date_inserted" date,
   "date_removed" date,
   "shelf" int,
+  "shelf_row" int,
   "position" int,
   "row_created_at" timestamp DEFAULT (now()),
   "row_updated_at" timestamp DEFAULT (now())
@@ -159,7 +176,7 @@ CREATE TABLE "recipes"."dim_recipes" (
   "recipe_id" SERIAL PRIMARY KEY,
   "recipe_name" text,
   "recipe_type" text,
-  "instructions" longtext,
+  "instructions" text,
   "row_created_at" timestamp DEFAULT (now()),
   "row_updated_at" timestamp DEFAULT (now())
 );
