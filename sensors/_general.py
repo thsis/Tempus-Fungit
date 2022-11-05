@@ -47,9 +47,9 @@ class SensorArray:
 
     def write_sensor_readings(self, readings):
         if not os.path.exists(self.out_path):
-            readings.write_csv(self.out_path, index=False)
+            readings.to_csv(self.out_path, index=False)
         else:
-            readings.write_csv(self.out_path, header=None, mode="a", index=False)
+            readings.to_csv(self.out_path, header=None, mode="a", index=False)
 
     def read(self, delay=5, retries=5):
         while True:
