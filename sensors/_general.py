@@ -21,11 +21,13 @@ class Sensor:
         dev = self.device
         site = self.site
         sensor = self.__class__.__name__
-        for _ in range(retries):
+        for i in range(retries):
             try:
                 reading = [Record(site, sensor, var, unit, getattr(dev, var)) for var, unit in self.var2unit.items()]
                 return reading
-            except RuntimeError:
+            except RuntimeError as e:
+                if i + 1 == retries:
+                    logger.error(e)
                 continue
         else:
             return (None for _ in self.var2unit)

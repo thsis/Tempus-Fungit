@@ -1,4 +1,5 @@
 import argparse
+import logging
 import signal
 from utilities import get_abs_path, CONFIG, interrupt_handler
 from sensors import DHT22, BH1750, BMP280, SCD30, SensorArray, PINS
@@ -19,9 +20,11 @@ def main(delay, retries):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Read Sensor Output")
-    parser.add_argument("--every", type=int, default=5)
-    parser.add_argument("--retries", type=int, default=5)
+    parser.add_argument("--every", type=int, default=15)
+    parser.add_argument("--retries", type=int, default=15)
     args = parser.parse_args()
+    logging.basicConfig(format="[%(levelname)s] %(asctime)s %(message)s", level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
 
     signal.signal(signal.SIGINT, interrupt_handler)
     main(args.every, args.retries)
