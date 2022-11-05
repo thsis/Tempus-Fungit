@@ -1,9 +1,7 @@
 import argparse
-from utilities import get_abs_path, CONFIG
+import signal
+from utilities import get_abs_path, CONFIG, interrupt_handler
 from sensors import DHT22, BH1750, BMP280, SCD30, SensorArray, PINS
-
-# parser = argparse.ArgumentParser(description="Read Sensor Output")
-# parser.add_argument("--ret")
 
 DATA_PATH = get_abs_path("data", "sensor_output_raw.csv")
 SENSORS = [
@@ -13,5 +11,17 @@ SENSORS = [
     SCD30(address=int(CONFIG.get("SENSORS", "address_scd30"), base=16), site=CONFIG.get("GENERAL", "site"))
 ]
 
-sensor_array = SensorArray(SENSORS, out_path=DATA_PATH, retries=5)
-sensor_array.read()
+
+def main(delay, retries):
+    sensor_array = SensorArray(SENSORS, out_path=DATA_PATH, retries=5)
+    sensor_array.read(delay=delay, retries=retries)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Read Sensor Output")
+    parser.add_argument("--every", type=int, default=5)
+    parser.add_argument("--retries", type=int, default=5)
+    args = parser.parse_args()
+
+    signal.signal(signal.SIGINT, interrupt_handler)
+    main(args.every, args.retries)
