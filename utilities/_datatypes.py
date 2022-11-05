@@ -22,6 +22,7 @@ class Record:
     def __str__(self):
         var_part = f"{self.variable}[{self.unit}]:".ljust(21)
         val_part = f"{self.value:.2f}".rjust(10) if self.value is not None else "N/A".rjust(10)
-        taken_at_part = f"taken at {self.taken_at.strftime('%Y-%m-%d %H:%M:%S')}."
+        taken_at_part = f"taken at {self.taken_at.strftime('%Y-%m-%d %H:%M:%S')}"
+        by_part = f"by sensor {self.sensor}"
 
-        return f"{var_part} {val_part} {taken_at_part}"
+        return f"{var_part} {val_part} {taken_at_part} {by_part}"
