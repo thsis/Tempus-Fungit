@@ -1,5 +1,5 @@
 import adafruit_dht
-from sensors import Sensor
+from components import Sensor
 
 
 class DHT22(Sensor):
@@ -12,7 +12,7 @@ class DHT22(Sensor):
 
 if __name__ == "__main__":
     from utilities import CONFIG
-    from sensors import PINS
+    from components import PINS
 
     dht22 = DHT22(address=PINS[CONFIG.get("SENSORS", "address_dht22")], site=CONFIG.get("GENERAL", "site"))
     readings = dht22.read(retries=5)

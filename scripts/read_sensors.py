@@ -2,7 +2,7 @@ import argparse
 import logging
 import signal
 from utilities import get_abs_path, CONFIG, interrupt_handler
-from sensors import DHT22, BH1750, BMP280, SCD30, SensorArray, PINS
+from components import DHT22, BH1750, BMP280, SCD30, SensorArray, PINS
 
 DATA_PATH = get_abs_path("data", "sensor_output_raw.csv")
 SENSORS = [

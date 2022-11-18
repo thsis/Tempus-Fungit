@@ -1,5 +1,5 @@
 import adafruit_scd30
-from sensors import Sensor, I2C
+from components import Sensor, I2C
 
 
 class SCD30(Sensor):

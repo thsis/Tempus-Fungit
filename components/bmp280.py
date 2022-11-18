@@ -1,5 +1,5 @@
 import adafruit_bmp280
-from sensors import Sensor, I2C
+from components import Sensor, I2C
 
 
 class BMP280(Sensor):

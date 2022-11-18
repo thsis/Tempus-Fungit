@@ -1,5 +1,5 @@
 import adafruit_bh1750
-from sensors import Sensor, I2C
+from components import Sensor, I2C
 
 
 class BH1750(Sensor):
