@@ -1,18 +1,28 @@
 import RPi.GPIO as GPIO
+import time
 
+channel = 21
+
+# GPIO setup
 GPIO.setmode(GPIO.BCM)
+GPIO.setup(channel, GPIO.OUT)
 
 
-class Relay:
-    def __init__(self, gpio):
-        self.gpio = gpio
-        self.status = "DISARMED"
+def motor_on(pin):
+    GPIO.output(pin, GPIO.HIGH)  # Turn motor on
 
 
-if __name__ == "__main__":
-    import time
-    RELAY_PIN = 21
-    GPIO.setup(RELAY_PIN, GPIO.OUT)
-    GPIO.output(RELAY_PIN, GPIO.HIGH)
-    time.sleep(5)
-    GPIO.output(RELAY_PIN, GPIO.LOW)
+def motor_off(pin):
+    GPIO.output(pin, GPIO.LOW)  # Turn motor off
+
+
+if __name__ == '__main__':
+    input("Start?:")
+    try:
+        motor_on(channel)
+        time.sleep(5)
+        motor_off(channel)
+        time.sleep(5)
+        GPIO.cleanup()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
