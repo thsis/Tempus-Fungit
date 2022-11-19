@@ -5,7 +5,7 @@ channel = 21
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(channel, GPIO.OUT)
+GPIO.setup(channel, GPIO.OUT, initial=GPIO.HIGH)
 
 
 def motor_on(pin):
@@ -22,7 +22,6 @@ if __name__ == '__main__':
         motor_on(channel)
         time.sleep(5)
         motor_off(channel)
-        time.sleep(5)
         GPIO.cleanup()
     except KeyboardInterrupt:
         GPIO.cleanup()
