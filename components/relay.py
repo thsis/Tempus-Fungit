@@ -53,8 +53,12 @@ if __name__ == '__main__':
     while True:
         try:
             relay.arm()
+            _, msg = relay.get_status()
+            print(msg)
             time.sleep(5)
             relay.disarm()
+            _, msg = relay.get_status()
+            time.sleep(5)
         except KeyboardInterrupt:
             relay.disarm()
             del relay
