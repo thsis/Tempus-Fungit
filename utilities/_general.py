@@ -14,8 +14,11 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def interrupt_handler(signum, frame):
+def interrupt_handler(signum, frame, cleanup_func=None):
     print(f'Handling signal {signum} ({signal.Signals(signum).name}).')
+
+    if cleanup_func:
+        cleanup_func()
 
     time.sleep(1)
     sys.exit(0)

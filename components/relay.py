@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 from colorama import Fore, Style
-import time
+
 
 GPIO.setmode(GPIO.BCM)
 
@@ -38,7 +38,7 @@ class Relay:
         if return_signal:
             return self.status, msg
         else:
-            return self.status
+            return self.msg
 
     def _set_status(self, status):
         self.status = status
@@ -53,15 +53,26 @@ class Relay:
 
 
 if __name__ == '__main__':
-    GPIO.setmode(GPIO.BCM)
-    relay = Relay(21)
-    while True:
-        try:
+    import time
+    import signal
+    from utilities import interrupt_handler
+
+
+    def interrupt_handler_with_cleanup(signum):
+        interrupt_handler(signum, cleanup_func=GPIO.cleanup())
+
+    def main():
+        GPIO.setmode(GPIO.BCM)
+        relay = Relay(21)
+        while True:
             relay.arm()
             print(relay.get_status())
             time.sleep(5)
             relay.disarm()
             print(relay.get_status())
             time.sleep(5)
-        except KeyboardInterrupt:
-            GPIO.cleanup()
+
+
+    signal.signal(signal.SIGINT, interrupt_handler_with_cleanup)
+    main()
+
