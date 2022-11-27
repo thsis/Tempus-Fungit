@@ -29,12 +29,16 @@ class Relay:
         else:
             return GPIO.LOW
 
-    def get_status(self):
+    def get_status(self, return_signal=False):
+        channel = str(self.channel).rjust(2, "0")
         if self.status:
-            msg = f"Relay Status on GPIO Pin {self.channel}: {Fore.RED}[ARMED]{Style.RESET_ALL}"
+            msg = f"Relay GPIO {self.channel}: {Fore.RED}{'[ARMED]'.rjust(11)}{Style.RESET_ALL}"
         else:
-            msg = f"Relay Status on GPIO Pin {self.channel}: {Fore.GREEN}[DISARMED]{Style.RESET_ALL}"
-        return self.status, msg
+            msg = f"Relay GPIO {self.channel}: {Fore.GREEN}{'[DISARMED]'.rjust(11)}{Style.RESET_ALL}"
+        if return_signal:
+            return self.status, msg
+        else:
+            return self.status
 
     def _set_status(self, status):
         self.status = status
@@ -49,16 +53,15 @@ class Relay:
 
 
 if __name__ == '__main__':
+    GPIO.setmode(GPIO.BCM)
     relay = Relay(21)
     while True:
         try:
             relay.arm()
-            _, msg = relay.get_status()
-            print(msg)
+            print(relay.get_status())
             time.sleep(5)
             relay.disarm()
-            _, msg = relay.get_status()
-            print(msg)
+            print(relay.get_status())
             time.sleep(5)
         except KeyboardInterrupt:
             GPIO.cleanup()
