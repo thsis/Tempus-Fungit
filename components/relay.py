@@ -49,12 +49,12 @@ class Relay:
 
 
 if __name__ == '__main__':
-    relay_1 = Relay(21)
-    try:
-        while True:
-            relay_1.arm()
+    relay = Relay(21)
+    while True:
+        try:
+            relay.arm()
             time.sleep(5)
-            relay_1.disarm()
-    except KeyboardInterrupt:
-        relay_1.disarm()
-        GPIO.cleanup()
+            relay.disarm()
+        except KeyboardInterrupt:
+            relay.disarm()
+            del relay
