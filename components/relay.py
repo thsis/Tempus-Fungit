@@ -59,10 +59,6 @@ if __name__ == '__main__':
     from utilities import interrupt_handler
 
 
-    def interrupt_handler_with_cleanup(signum, frame):
-        GPIO.setmode(GPIO.BCM)
-        interrupt_handler(signum, frame, cleanup_func=GPIO.cleanup())
-
     def main():
         GPIO.setmode(GPIO.BCM)
         relay = Relay(21)
@@ -75,6 +71,6 @@ if __name__ == '__main__':
             time.sleep(5)
 
 
-    signal.signal(signal.SIGINT, interrupt_handler_with_cleanup)
+    signal.signal(signal.SIGINT, interrupt_handler)
     main()
 
