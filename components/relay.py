@@ -38,7 +38,7 @@ class Relay:
         if return_signal:
             return self.status, msg
         else:
-            return self.msg
+            return msg
 
     def _set_status(self, status):
         self.status = status
