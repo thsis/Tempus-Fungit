@@ -13,6 +13,7 @@ class Relay:
                    initial=self._get_turn_on_signal() if self.status else self._get_turn_off_signal())
 
     def __del__(self):
+        self.disarm()
         GPIO.setmode(GPIO.BCM)
         GPIO.cleanup(self.channel)
 
