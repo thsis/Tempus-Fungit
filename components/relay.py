@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
 
     def interrupt_handler_with_cleanup(signum, frame):
+        GPIO.setmode(GPIO.BCM)
         interrupt_handler(signum, frame, cleanup_func=GPIO.cleanup())
 
     def main():
