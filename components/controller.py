@@ -48,7 +48,7 @@ class Controller:
         while True:
             try:
                 self.relay.disarm()
-                turn_on, active_time = next(estimation_strategy)
+                turn_on, active_time = next(estimate_active_time)
                 if turn_on:
                     self.activate_relay(active_time)
                 else:
