@@ -48,10 +48,9 @@ class Controller:
     @log_on_end(logging.INFO, "end of run.")
     @log_exception("encountered error:")
     def run(self, estimation_strategy):
-        get_active_time = estimation_strategy()
         while True:
             try:
-                turn_on, active_time = next(get_active_time)
+                turn_on, active_time = estimation_strategy()
                 active_time = self.__sanitize(active_time)
                 if turn_on:
                     self.activate_relay(active_time)
@@ -73,18 +72,17 @@ if __name__ == "__main__":
         def random_lux_estimator():
             bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
                             site=CONFIG.get("GENERAL", "site"))
-            while True:
-                current_lux = bh1750.read()[0].value
-                logging.debug(f"currently: {current_lux} lux.")
-                if current_lux >= 100:
-                    on = True
-                    t = random.randint(1, 10)
-                    logging.debug(f"send command to turn on sensor for {t} seconds.")
-                else:
-                    on = False
-                    t = 0
-                    logging.debug(f"send command to turn sensor off.")
-                yield on, t
+            current_lux = bh1750.read()[0].value
+            logging.debug(f"currently: {current_lux} lux.")
+            if current_lux >= 100:
+                on = True
+                t = random.randint(1, 10)
+                logging.debug(f"send command to turn on sensor for {t} seconds.")
+            else:
+                on = False
+                t = 0
+                logging.debug(f"send command to turn sensor off.")
+            return on, t
 
         relay = Relay(21)
         controller = Controller(relay, active_min=3, active_max=5, delay=5)
