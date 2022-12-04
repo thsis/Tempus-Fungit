@@ -42,6 +42,7 @@ class Controller:
 
     @log_on_start(logging.INFO, "start run.")
     @log_on_end(logging.INFO, "end of run.")
+    @log_exception("encountered error:")
     def run(self, estimation_strategy):
         while True:
             try:
@@ -53,10 +54,6 @@ class Controller:
                     self.skip()
 
             except StopIteration:
-                break
-
-            except Exception as e:
-                log_exception(e)
                 break
 
 
