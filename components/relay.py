@@ -3,7 +3,10 @@ from colorama import Fore, Style
 
 
 class Relay:
+    counter = 0
+
     def __init__(self, channel, active_low=True, initial_on=False):
+        Relay.counter += 1
         self.channel = channel
         self.active_low = active_low
         self.status = initial_on
@@ -11,6 +14,9 @@ class Relay:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.channel, GPIO.OUT,
                    initial=self._get_turn_on_signal() if self.status else self._get_turn_off_signal())
+
+    def __str__(self):
+        return f"Relay {Relay.counter}"
 
     def __del__(self):
         self.disarm()

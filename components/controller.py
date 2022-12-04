@@ -20,13 +20,16 @@ class Controller:
     def __sanitize(self, t):
         # handle t larger than maximum value
         if t > self.active_max:
+            logger.debug(f"received {t} seconds --> truncating input to {self.active_max}.")
             return self.active_max
 
         # handle t smaller than min value
         if t < self.active_min:
+            logger.debug(f"received {t} seconds --> truncating input to {self.active_min}.")
             return self.active_min
 
         if self.active_min <= t <= self.active_max:
+            logger.debug(f"received {t} seconds --> passing input through.")
             return t
 
     def activate_relay(self, seconds):
@@ -37,6 +40,7 @@ class Controller:
             self.relay.disarm()
 
     def skip(self):
+        self.relay.disarm()
         logger.debug(f"skip this round ({self.delay} seconds).")
         time.sleep(self.delay)
 
@@ -49,6 +53,7 @@ class Controller:
             try:
                 self.relay.disarm()
                 turn_on, active_time = next(estimate_active_time)
+                active_time = self.__sanitize(active_time)
                 if turn_on:
                     self.activate_relay(active_time)
                 else:
