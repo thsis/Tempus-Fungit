@@ -77,7 +77,7 @@ if __name__ == "__main__":
             reading, = bh1750.read()
             current_lux = reading.value
             logging.debug(f"currently: {current_lux} lux.")
-            if current_lux < 100:
+            if current_lux >= 100:
                 on = True
                 t = random.randint(1, 10)
                 logging.debug(f"send command to turn on sensor for {t} seconds.")
