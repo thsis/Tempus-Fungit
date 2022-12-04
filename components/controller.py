@@ -73,7 +73,7 @@ if __name__ == "__main__":
                         site=CONFIG.get("GENERAL", "site"))
 
         while True:
-            current_lux = bh1750.read()[0].reading.value
+            current_lux = bh1750.read()[0].value
             logging.debug(f"currently: {current_lux} lux.")
             if current_lux >= 100:
                 on = True
