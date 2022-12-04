@@ -51,7 +51,6 @@ class Controller:
         estimate_active_time = estimation_strategy()
         while True:
             try:
-                self.relay.disarm()
                 turn_on, active_time = next(estimate_active_time)
                 active_time = self.__sanitize(active_time)
                 if turn_on:
@@ -74,8 +73,7 @@ if __name__ == "__main__":
                         site=CONFIG.get("GENERAL", "site"))
 
         while True:
-            reading, = bh1750.read()
-            current_lux = reading.value
+            current_lux = bh1750.read()[0].reading.value
             logging.debug(f"currently: {current_lux} lux.")
             if current_lux >= 100:
                 on = True
