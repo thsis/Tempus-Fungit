@@ -86,7 +86,7 @@ if __name__ == "__main__":
     def main():
         relay = Relay(21)
         controller = Controller(relay, active_min=3, active_max=5, delay=5)
-        controller.run(estimation_strategy=random_lux_estimator())
+        controller.run(estimation_strategy=random_lux_estimator)
 
 
     logging.basicConfig(filename=get_abs_path("logs", "controller_demo.log"), level=logging.DEBUG)
