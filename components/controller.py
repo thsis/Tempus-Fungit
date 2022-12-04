@@ -94,8 +94,19 @@ if __name__ == "__main__":
         controller.run(estimation_strategy=random_lux_estimator)
 
 
-    logging.basicConfig(filename=get_abs_path("logs", "controller_demo.log"), level=logging.DEBUG)
-    logging.debug("Debug logging test...")
+    logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(logging.DEBUG)
+
+    fileHandler = logging.FileHandler(get_abs_path("logs", "controller_demo.log"))
+    fileHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+
+    rootLogger.debug("Debug logging test...")
     signal.signal(signal.SIGINT, interrupt_handler)
     main()
 
