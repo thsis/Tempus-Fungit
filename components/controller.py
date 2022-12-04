@@ -44,10 +44,11 @@ class Controller:
     @log_on_end(logging.INFO, "end of run.")
     @log_exception("encountered error:")
     def run(self, estimation_strategy):
+        estimate_active_time = estimation_strategy()
         while True:
             try:
                 self.relay.disarm()
-                turn_on, active_time = estimation_strategy()
+                turn_on, active_time = next(estimation_strategy)
                 if turn_on:
                     self.activate_relay(active_time)
                 else:
