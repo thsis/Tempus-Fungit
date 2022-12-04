@@ -41,7 +41,7 @@ class SensorArray:
         self.buffer = []
 
     def take_sensor_readings(self):
-        readings = list(itertools.chain.from_iterable([sensor.read(retries=self.retries) for sensor in self.sensors]))
+        readings = list(itertools.chain.from_iterable([sensor.read_all(retries=self.retries) for sensor in self.sensors]))
         print(*readings, sep="\n")
         print()
         return pd.DataFrame(readings)
@@ -52,7 +52,7 @@ class SensorArray:
         else:
             readings.to_csv(self.out_path, header=None, mode="a", index=False)
 
-    def read(self, delay=5, retries=5):
+    def read_all(self, delay=5, retries=5):
         while True:
             for i in range(retries):
                 try:

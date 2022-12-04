@@ -1,0 +1,99 @@
+import logging
+import time
+from logdecorator import log_on_start, log_on_end, log_exception
+from components import Relay
+
+logger = logging.getLogger(__name__)
+
+
+class Controller:
+    def __init__(self,
+                 relay: Relay,
+                 active_min: float,
+                 active_max: float,
+                 delay: float):
+        self.relay = relay
+        self.active_min = active_min
+        self.active_max = active_max
+        self.delay = delay
+
+    def __sanitize(self, t):
+        # handle t larger than maximum value
+        if t > self.active_max:
+            return self.active_max
+
+        # handle t smaller than min value
+        if t < self.active_min:
+            return self.active_min
+
+        if self.active_min <= t <= self.active_max:
+            return t
+
+    def activate_relay(self, seconds):
+        if seconds:
+            logger.debug(f"start {self.relay} for {seconds} seconds.")
+            self.relay.arm()
+            time.sleep(seconds)
+            self.relay.disarm()
+
+    def skip(self):
+        logger.debug(f"skip this round ({self.delay} seconds).")
+        time.sleep(self.delay)
+
+    @log_on_start(logging.INFO, "start run.")
+    @log_on_end(logging.INFO, "end of run.")
+    def run(self, estimation_strategy):
+        while True:
+            try:
+                self.relay.disarm()
+                turn_on, active_time = estimation_strategy()
+                if turn_on:
+                    self.activate_relay(active_time)
+                else:
+                    self.skip()
+
+            except StopIteration:
+                break
+
+            except Exception as e:
+                log_exception(e)
+                break
+
+
+if __name__ == "__main__":
+    import random
+    import signal
+    from components import BH1750
+    from utilities import CONFIG, get_abs_path, interrupt_handler
+
+    def random_lux_estimator():
+        bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
+                        site=CONFIG.get("GENERAL", "site"))
+
+        while True:
+            reading, = bh1750.read()
+            current_lux = reading.value
+            logging.debug(f"currently: {current_lux} lux.")
+            if current_lux < 100:
+                on = True
+                t = random.randint(1, 10)
+                logging.debug(f"send command to turn on sensor for {t} seconds.")
+            else:
+                on = False
+                t = 0
+                logging.debug(f"send command to turn sensor off.")
+            yield on, t
+
+
+    def main():
+        relay = Relay(21)
+        controller = Controller(relay, active_min=3, active_max=5, delay=5)
+        controller.run(estimation_strategy=random_lux_estimator())
+
+
+    logging.basicConfig(filename=get_abs_path("logs", "controller_demo.log"), level=logging.DEBUG)
+    logging.debug("Debug logging test...")
+    signal.signal(signal.SIGINT, interrupt_handler)
+    main()
+
+

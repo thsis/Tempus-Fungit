@@ -15,7 +15,7 @@ SENSORS = [
 
 def main(delay, retries):
     sensor_array = SensorArray(SENSORS, out_path=DATA_PATH, retries=5)
-    sensor_array.read(delay=delay, retries=retries)
+    sensor_array.read_all(delay=delay, retries=retries)
 
 
 if __name__ == "__main__":
