@@ -70,6 +70,8 @@ if __name__ == "__main__":
 
     def main():
         def random_lux_estimator():
+            bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
+                            site=CONFIG.get("GENERAL", "site"))
             current_lux = bh1750.read()[0].value
             logging.debug(f"currently: {current_lux} lux.")
             if current_lux >= 100:
@@ -82,8 +84,6 @@ if __name__ == "__main__":
                 logging.debug(f"send command to turn sensor off.")
             return on, t
 
-        bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
-                        site=CONFIG.get("GENERAL", "site"))
         relay = Relay(21)
         controller = Controller(relay, active_min=3, active_max=5, delay=5)
         controller.run(estimation_strategy=random_lux_estimator)
