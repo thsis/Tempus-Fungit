@@ -1,5 +1,8 @@
+import logging
 import RPi.GPIO as GPIO
 from colorama import Fore, Style
+
+logger = logging.getLogger(__name__)
 
 
 class Relay:
@@ -20,6 +23,7 @@ class Relay:
 
     def __del__(self):
         self.disarm()
+        logger.debug(f"cleaning up {self.__str__()}")
         GPIO.setmode(GPIO.BCM)
         GPIO.cleanup(self.channel)
 
@@ -48,6 +52,7 @@ class Relay:
 
     def _set_status(self, status):
         self.status = status
+        logger.info(f"status {self.__str__()}: {self.get_status()}")
 
     def arm(self):
         GPIO.output(self.channel, self._get_turn_on_signal())

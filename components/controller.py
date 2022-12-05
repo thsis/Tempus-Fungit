@@ -62,7 +62,6 @@ class Controller:
 
 
 if __name__ == "__main__":
-    import random
     import signal
     from components import BH1750
     from utilities import CONFIG, get_abs_path, interrupt_handler
@@ -76,7 +75,7 @@ if __name__ == "__main__":
             logging.debug(f"currently: {current_lux} lux.")
             if current_lux >= 100:
                 on = True
-                t = random.randint(1, 10)
+                t = 2
                 logging.debug(f"send command to turn on sensor for {t} seconds.")
             else:
                 on = False
@@ -85,7 +84,7 @@ if __name__ == "__main__":
             return on, t
 
         relay = Relay(21)
-        controller = Controller(relay, active_min=3, active_max=5, delay=5)
+        controller = Controller(relay, active_min=1, active_max=3, delay=2)
         controller.run(estimation_strategy=random_lux_estimator)
 
 
