@@ -42,9 +42,9 @@ class Relay:
     def get_status(self, return_signal=False):
         channel = str(self.channel).rjust(2, "0")
         if self.status:
-            msg = f"Relay GPIO {channel}: {Fore.RED}{'[ARMED]'.rjust(11)}{Style.RESET_ALL}"
+            msg = f"GPIO {channel}: {Fore.RED}{'[ARMED]'.rjust(11)}{Style.RESET_ALL}"
         else:
-            msg = f"Relay GPIO {channel}: {Fore.GREEN}{'[DISARMED]'.rjust(11)}{Style.RESET_ALL}"
+            msg = f"GPIO {channel}: {Fore.GREEN}{'[DISARMED]'.rjust(11)}{Style.RESET_ALL}"
         if return_signal:
             return self.status, msg
         else:
@@ -52,7 +52,7 @@ class Relay:
 
     def _set_status(self, status):
         self.status = status
-        logger.info(f"status {self.__str__()}: {self.get_status()}")
+        logger.info(f"status {self.__str__()} {self.get_status()}")
 
     def arm(self):
         GPIO.output(self.channel, self._get_turn_on_signal())

@@ -26,7 +26,7 @@ def interrupt_handler(signum, frame, cleanup_func=None):
 
 
 def get_logger(level, path_to_log_file=None):
-    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
+    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s] %(message)s")
     logger = logging.getLogger()
     logger.setLevel(level)
 

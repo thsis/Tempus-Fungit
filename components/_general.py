@@ -10,6 +10,13 @@ from utilities import Record, clear
 logger = logging.getLogger(__name__)
 
 
+def write_readings(readings, out_path):
+    if not os.path.exists(out_path):
+        readings.to_csv(out_path, index=False)
+    else:
+        readings.to_csv(out_path, header=None, mode="a", index=False)
+
+
 class Sensor:
     def __init__(self, site):
         self.site = site
@@ -72,12 +79,6 @@ class SensorArray:
         print()
         return pd.DataFrame(readings)
 
-    def write_sensor_readings(self, readings):
-        if not os.path.exists(self.out_path):
-            readings.to_csv(self.out_path, index=False)
-        else:
-            readings.to_csv(self.out_path, header=None, mode="a", index=False)
-
     def read(self, var, retries=5, delay=1):
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
         # todo: implement weighted mean
@@ -89,7 +90,7 @@ class SensorArray:
                 try:
                     results = self.take_sensor_readings()
                     if self.out_path:
-                        self.write_sensor_readings(results)
+                        write_readings(results, self.out_path)
                     time.sleep(delay)
                     # clear screen
                     clear()

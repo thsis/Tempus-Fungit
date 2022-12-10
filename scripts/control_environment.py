@@ -1,7 +1,10 @@
 import random
 import logging
-from utilities import CONFIG, LOG_LEVELS
-from components import DHT22, BH1750, BMP280, SCD30, SensorArray, PINS, Relay, Controller
+import pandas as pd
+from datetime import datetime
+from colorama import Fore, Style
+from utilities import CONFIG, LOG_LEVELS, get_abs_path
+from components import DHT22, BH1750, BMP280, SCD30, write_readings, SensorArray, PINS, Relay, Controller
 
 SENSORS = [
     DHT22(address=PINS[CONFIG.get("SENSORS", "address_dht22")], site=CONFIG.get("GENERAL", "site")),
@@ -14,29 +17,38 @@ SENSOR_ARRAY = SensorArray(SENSORS)
 SECONDS_IN_MINUTE = 60
 
 
-def random_time_estimator(var, target, increases=True, margin=0.1, retries=5, delay=1, unit="seconds"):
+def random_time_estimator(var, target, increases=True, margin=0.1, retries=5, delay=1, unit="seconds", filename=None):
     assert 0 < margin < 1, "`margin` must lie in (0, 1)."
     current_value = SENSOR_ARRAY.read(var, delay=delay, retries=retries)
-    logging.debug(f"current value: {current_value}.")
+    logging.debug(f"current value: {Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL}.")
     logging.debug(f"turning on the connected device {'increases' if increases else 'decreases'} {var}.")
     lower = (1 - margin) * target
     upper = (1 + margin) * target
 
     # turn device on, if the device increases the environmental variable and current value is below lower bound
     if increases and current_value < lower:
-        logging.debug(f"current value ({current_value}) is smaller than lower limit {lower}.")
+        logging.debug(f"current value ({Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL})" 
+                      f" is smaller than lower limit {lower:.2f}.")
         on = True
         t = random.randint(0, 100)
     # turn device on, if the device decreases the environmental variable and current value is above upper bound
     elif not increases and current_value > upper:
-        logging.debug(f"current value ({current_value}) is larger than upper limit {upper}.")
+        logging.debug(f"current value ({Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL})" 
+                      f" is larger than upper limit {upper:.2f}.")
         on = True
         t = random.randint(0, 100)
     # otherwise keep device off
     else:
-        logging.debug(f"current value: {current_value}, lower: {lower}, upper: {upper}.")
+        logging.debug(f"current value: {Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL}, "
+                      f"lower: {lower:.2f}, upper: {upper:.2f}.")
         on = False
         t = 0
+
+    if filename is not None:
+        row = pd.Series([datetime.now(), var, current_value, on, t],
+                        index=["taken_at", "variable", "value", "is_relay_on", "time_relay_on"])
+        write_readings(row.to_frame().T, filename)
+
     logging.debug(f"keep device on: {on}.")
     logging.debug(f"time to keep device on: {t} {unit}.")
     return on, t * SECONDS_IN_MINUTE if unit == "minutes" else t
@@ -66,13 +78,14 @@ def main(args):
                    margin=args.margin,
                    unit=args.unit,
                    retries=args.sensor_retries,
-                   delay=args.sensor_delay)
+                   delay=args.sensor_delay,
+                   filename=get_abs_path("data", args.track_csv))
 
 
 if __name__ == "__main__":
     import argparse
     import signal
-    from utilities import get_logger, get_abs_path, interrupt_handler
+    from utilities import get_logger, interrupt_handler
 
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("var", help="variable to control for.")
@@ -101,6 +114,8 @@ if __name__ == "__main__":
                         help="file to store logs, no logs are stored if this parameter is not provided,"
                              " logs are written to `logs` directory.")
     PARSER.add_argument("--log-level", default="info", choices=["info", "warn", "debug", "error"])
+    PARSER.add_argument("--track-csv", default=None,
+                        help="file to track circuit actions, if this parameter is not set, keep no track record.")
     ARGS = PARSER.parse_args()
 
     signal.signal(signal.SIGINT, interrupt_handler)
