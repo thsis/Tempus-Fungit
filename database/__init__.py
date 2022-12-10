@@ -10,8 +10,7 @@ def connect():
                                   port=CONFIG["DATABASE"]["port"],
                                   host=CONFIG["DATABASE"]["host"],
                                   user=CONFIG["DATABASE"]["user"],
-                                  password=CONFIG["DATABASE"]["password"]
-                                  )
+                                  password=CONFIG["DATABASE"]["password"])
     return connection
 
 

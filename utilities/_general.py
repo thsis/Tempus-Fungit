@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def get_abs_path(*args):
-    return os.path.join(Path(__name__).parent.parent, *args)
+    return os.path.join(Path(__file__).parent.parent, *args)
 
 
 def clear():
@@ -45,7 +45,7 @@ LOG_LEVELS = {
     "info": logging.INFO,
     "warn": logging.WARNING,
     "debug": logging.DEBUG,
-    "error": logging.ERROR
-}
+    "error": logging.ERROR}
+
 CONFIG = ConfigParser()
 CONFIG.read(get_abs_path("config.ini"))

@@ -3,6 +3,7 @@ import logging
 import itertools
 import time
 import board
+from RPi import GPIO
 import pandas as pd
 
 from utilities import Record, clear

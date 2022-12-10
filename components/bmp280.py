@@ -18,5 +18,5 @@ if __name__ == "__main__":
     from utilities import CONFIG
 
     bmp280 = BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16), site=CONFIG.get("GENERAL", "site"))
-    readings = bmp280.read(retries=5)
+    readings = bmp280.read_all(retries=5)
     print(*readings, sep="\n")

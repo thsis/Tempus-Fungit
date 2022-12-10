@@ -20,5 +20,5 @@ if __name__ == "__main__":
     from utilities import CONFIG
 
     scd30 = SCD30(address=int(CONFIG.get("SENSORS", "address_scd30"), base=16), site=CONFIG.get("GENERAL", "site"))
-    readings = scd30.read(retries=5)
+    readings = scd30.read_all(retries=5)
     print(*readings, sep="\n")
