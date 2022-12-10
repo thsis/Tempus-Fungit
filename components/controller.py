@@ -47,10 +47,10 @@ class Controller:
     @log_on_start(logging.INFO, "start run.")
     @log_on_end(logging.INFO, "end of run.")
     @log_exception("encountered error:")
-    def run(self, estimation_strategy):
+    def run(self, estimation_strategy, **kwargs):
         while True:
             try:
-                turn_on, active_time = estimation_strategy()
+                turn_on, active_time = estimation_strategy(**kwargs)
                 active_time = self.__sanitize(active_time)
                 if turn_on:
                     self.activate_relay(active_time)
@@ -64,14 +64,14 @@ class Controller:
 if __name__ == "__main__":
     import signal
     from components import BH1750
-    from utilities import CONFIG, get_abs_path, interrupt_handler
+    from utilities import CONFIG, get_abs_path, interrupt_handler, get_logger
 
 
     def main():
         def random_lux_estimator():
             bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
                             site=CONFIG.get("GENERAL", "site"))
-            current_lux = bh1750.read()[0].value
+            current_lux = bh1750.read("light_intensity")
             logging.debug(f"currently: {current_lux} lux.")
             if current_lux >= 100:
                 on = True
@@ -87,18 +87,7 @@ if __name__ == "__main__":
         controller = Controller(relay, active_min=1, active_max=3, delay=2)
         controller.run(estimation_strategy=random_lux_estimator)
 
-
-    logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
-
-    fileHandler = logging.FileHandler(get_abs_path("logs", "controller_demo.log"))
-    fileHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
-    rootLogger.addHandler(consoleHandler)
+    rootLogger = get_logger(logging.DEBUG, get_abs_path("logs", "controller_demo.log"))
 
     rootLogger.debug("Debug logging test...")
     signal.signal(signal.SIGINT, interrupt_handler)

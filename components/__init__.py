@@ -4,3 +4,4 @@ from .bmp280 import BMP280
 from .dht22 import DHT22
 from .scd30 import SCD30
 from .relay import Relay
+from .controller import Controller

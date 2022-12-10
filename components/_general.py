@@ -17,7 +17,7 @@ class Sensor:
         self.device = dict()
         super(Sensor, self).__init__()
 
-    def read(self, retries=5):
+    def read_all(self, retries=5, delay=1):
         dev = self.device
         site = self.site
         sensor = self.__class__.__name__
@@ -26,22 +26,48 @@ class Sensor:
                 reading = [Record(site, sensor, var, unit, getattr(dev, var)) for var, unit in self.var2unit.items()]
                 return reading
             except RuntimeError as e:
+                time.sleep(delay)
                 if i + 1 == retries:
                     logger.error(e)
                 continue
         else:
             return (None for _ in self.var2unit)
 
+    def read(self, var, retries=5, delay=1):
+        sensor_name = self.__class__.__name__
+        assert var in self.var2unit.keys(), f"{sensor_name} is not a sensor for '{var}'. Maybe check spelling?"
+        unit = self.var2unit[var]
+        for i in range(retries):
+            try:
+                value = getattr(self.device, var)
+                assert value is not None, "could not read sensor."
+                reading = Record(self.site,
+                                 sensor_name,
+                                 var,
+                                 unit,
+                                 value)
+                return reading
+            except (RuntimeError, AssertionError) as e:
+                logger.warning(e)
+                time.sleep(delay)
+                if i + 1 == retries:
+                    logger.error(e)
+                continue
+        else:
+            return Record(self.site, sensor_name, var, unit, None)
+
 
 class SensorArray:
-    def __init__(self, sensors, out_path, retries=5):
+    def __init__(self, sensors, out_path=None, retries=5):
         self.sensors = sensors
         self.out_path = out_path
         self.retries = retries
         self.buffer = []
 
     def take_sensor_readings(self):
-        readings = list(itertools.chain.from_iterable([sensor.read_all(retries=self.retries) for sensor in self.sensors]))
+        readings = list(
+            itertools.chain.from_iterable(
+                [sensor.read_all(retries=self.retries) for sensor in self.sensors]))
         print(*readings, sep="\n")
         print()
         return pd.DataFrame(readings)
@@ -52,12 +78,18 @@ class SensorArray:
         else:
             readings.to_csv(self.out_path, header=None, mode="a", index=False)
 
+    def read(self, var, retries=5, delay=1):
+        readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
+        # todo: implement weighted mean
+        return readings.value.mean()
+
     def read_all(self, delay=5, retries=5):
         while True:
             for i in range(retries):
                 try:
                     results = self.take_sensor_readings()
-                    self.write_sensor_readings(results)
+                    if self.out_path:
+                        self.write_sensor_readings(results)
                     time.sleep(delay)
                     # clear screen
                     clear()
