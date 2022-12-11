@@ -34,7 +34,8 @@ class Controller:
 
     def activate_relay(self, seconds):
         if seconds:
-            logger.debug(f"start {self.relays} for {seconds} seconds.")
+            for relay in self.relays:
+                logger.debug(f"start {relay} for {seconds} seconds.")
             for relay in self.relays:
                 relay.arm()
             time.sleep(seconds)
