@@ -8,11 +8,11 @@ logger = logging.getLogger(__name__)
 
 class Controller:
     def __init__(self,
-                 relay: Relay,
+                 relays: list,
                  active_min: float,
                  active_max: float,
                  delay: float):
-        self.relay = relay
+        self.relays = relays
         self.active_min = active_min
         self.active_max = active_max
         self.delay = delay
@@ -34,13 +34,17 @@ class Controller:
 
     def activate_relay(self, seconds):
         if seconds:
-            logger.debug(f"start {self.relay} for {seconds} seconds.")
-            self.relay.arm()
+            logger.debug(f"start {self.relays} for {seconds} seconds.")
+            for relay in self.relays:
+                relay.arm()
             time.sleep(seconds)
-            self.relay.disarm()
+            for relay in self.relays:
+                relay.disarm()
 
     def skip(self):
-        self.relay.disarm()
+        for relay in self.relays:
+            relay.disarm()
+
         logger.debug(f"skip this round ({self.delay} seconds).")
         time.sleep(self.delay)
 
