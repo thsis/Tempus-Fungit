@@ -91,7 +91,6 @@ class SensorArray:
     def read(self, var, retries=5, delay=1):
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
         merged = readings.merge(SENSOR_WEIGHTS)
-        print(merged)
         # todo: implement weighted mean
         return merged.loc[merged.weight > 0].value.mean()
 
