@@ -43,7 +43,5 @@ class TestSensors(unittest.TestCase):
         self.assertEqual(len(sensor_readings), sum(len(s.var2unit) for s in sensors))
 
 
-
-
 if __name__ == '__main__':
     unittest.main()

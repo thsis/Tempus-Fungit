@@ -66,7 +66,7 @@ def main(args):
     root_logger.info(f"estimation strategy for turning on the device is random: " 
                      f"device may turn on for {args.active_min} to {args.active_max} {args.unit}")
 
-    relay = Relay(args.relay)
+    relay = Relay(args.relay, active_low=False)
     controller = Controller(relay,
                             active_min=_convert_time_argument(args.active_min, args.unit),
                             active_max=_convert_time_argument(args.active_max, args.unit),
