@@ -9,6 +9,14 @@ import pandas as pd
 from utilities import Record, clear
 
 logger = logging.getLogger(__name__)
+SENSOR_WEIGHTS = pd.DataFrame({
+    "sensor": [["SCD30"] * 3, ["DHT22"] * 2, "BH1750", ["BMP280"] * 3],
+    "variable": ["temperature", "humidity", "co2",
+                 "temperature", "humidity",
+                 "light_intensity",
+                 "temperature", "pressure", "altitude"],
+    "weight": [0, 0, 1, 1, 1, 1, 0, 1, 1]
+})
 
 
 def write_readings(readings, out_path):
@@ -82,8 +90,10 @@ class SensorArray:
 
     def read(self, var, retries=5, delay=1):
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
+        merged = readings.merge(SENSOR_WEIGHTS)
+        print(merged)
         # todo: implement weighted mean
-        return readings.value.mean()
+        return merged.loc[merged.weight > 0].value.mean()
 
     def read_all(self, delay=5, retries=5):
         while True:
