@@ -10,7 +10,7 @@ from utilities import Record, clear
 
 logger = logging.getLogger(__name__)
 SENSOR_WEIGHTS = pd.DataFrame({
-    "sensor": [["SCD30"] * 3, *["DHT22"] * 2, "BH1750", *["BMP280"] * 3],
+    "sensor": [*["SCD30"] * 3, *["DHT22"] * 2, "BH1750", *["BMP280"] * 3],
     "variable": ["temperature", "humidity", "co2",
                  "temperature", "humidity",
                  "light_intensity",
