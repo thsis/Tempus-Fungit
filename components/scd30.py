@@ -13,8 +13,6 @@ class SCD30(Sensor):
         self.device.humidity = self.device.relative_humidity
         self.device.co2 = self.device.CO2
 
-        self.read_all(retries=1)
-
 
 if __name__ == "__main__":
     from utilities import CONFIG
