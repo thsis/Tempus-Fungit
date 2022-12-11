@@ -32,6 +32,10 @@ class TestSensors(unittest.TestCase):
         sensors = [DHT22(address=PINS[CONFIG.get("SENSORS", "address_dht22")],
                          site=CONFIG.get("GENERAL", "site")),
                    BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
+                          site=CONFIG.get("GENERAL", "site")),
+                   SCD30(address=int(CONFIG.get("SENSORS", "address_scd30"), base=16),
+                         site=CONFIG.get("GENERAL", "site")),
+                   BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16),
                           site=CONFIG.get("GENERAL", "site"))
                    ]
         sensor_array = SensorArray(sensors)
