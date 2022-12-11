@@ -19,7 +19,7 @@ class TestSensors(unittest.TestCase):
     def test_bmp280(self):
         bmp280 = BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16),
                         site=CONFIG.get("GENERAL", "site"))
-        readings = bmp280.read(retries=5)
+        readings = bmp280.read_all(retries=5)
         self.assertEqual(len(readings), len(bmp280.var2unit))
 
     def test_scd(self):
