@@ -66,8 +66,8 @@ def main(args):
     root_logger.info(f"estimation strategy for turning on the device is random: " 
                      f"device may turn on for {args.active_min} to {args.active_max} {args.unit}")
 
-    relay = Relay(args.relays, active_low=False)
-    controller = Controller(relay,
+    relays = [Relay(pin, active_low=False) for pin in args.relays]
+    controller = Controller(relays,
                             active_min=_convert_time_argument(args.active_min, args.unit),
                             active_max=_convert_time_argument(args.active_max, args.unit),
                             delay=_convert_time_argument(args.delay, args.unit))
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("var", help="variable to control for.")
     PARSER.add_argument("target", type=float, help="target value to try and maintain.")
-    PARSER.add_argument("relay", nargs="*", type=int, help="GPIO pin of relay.")
+    PARSER.add_argument("relays", nargs="*", type=int, help="GPIO pin of relay.")
     PARSER.add_argument("--increases", action="store_true", default=False,
                         help="connected devices may in or decrease the value of the environment variable. "
                              "set flag to indicate increase in environmental variable, otherwise decreasing "
