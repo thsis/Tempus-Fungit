@@ -83,6 +83,7 @@ class SensorArray:
     def read(self, var, retries=5, delay=1):
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
         # todo: implement weighted mean
+        print(readings)
         return readings.value.mean()
 
     def read_all(self, delay=5, retries=5):
