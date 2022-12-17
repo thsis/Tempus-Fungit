@@ -34,20 +34,8 @@ class Sensor:
         super(Sensor, self).__init__()
 
     def read_all(self, retries=5, delay=1):
-        dev = self.device
-        site = self.site
-        sensor = self.__class__.__name__
-        for i in range(retries):
-            try:
-                reading = [Record(site, sensor, var, unit, getattr(dev, var)) for var, unit in self.var2unit.items()]
-                return reading
-            except RuntimeError as e:
-                time.sleep(delay)
-                if i + 1 == retries:
-                    logger.error(e)
-                continue
-        else:
-            return (None for _ in self.var2unit)
+        readings = [self.read(var=var, retries=retries, delay=delay) for var in self.var2unit.keys()]
+        return readings
 
     def read(self, var, retries=5, delay=1):
         sensor_name = self.__class__.__name__
@@ -55,13 +43,12 @@ class Sensor:
         unit = self.var2unit[var]
         for i in range(retries):
             try:
-                value = getattr(self.device, var)
-                assert value is not None, "could not read sensor."
                 reading = Record(self.site,
                                  sensor_name,
                                  var,
                                  unit,
-                                 value)
+                                 getattr(self.device, var))
+                assert reading.value is not None, f"could not read sensor {sensor_name}."
                 return reading
             except (RuntimeError, AssertionError) as e:
                 logger.warning(e)
@@ -74,33 +61,39 @@ class Sensor:
 
 
 class SensorArray:
-    def __init__(self, sensors, out_path=None, retries=5):
+    def __init__(self, sensors, out_path=None, retries=5, delay=1):
         self.sensors = sensors
         self.out_path = out_path
         self.retries = retries
-        self.buffer = []
+        self.delay = delay
 
     def take_sensor_readings(self):
         readings = list(
             itertools.chain.from_iterable(
                 [sensor.read_all(retries=self.retries) for sensor in self.sensors]))
-        print(*readings, sep="\n")
-        print()
-        return pd.DataFrame(readings)
+        out = pd.DataFrame(readings)
+        logger.info(f"Sensor readings:\n{out}")
+        return out
 
-    def read(self, var, retries=5, delay=1):
+    def read(self, var, retries=None, delay=None):
+        retries = retries if retries is not None else self.retries
+        delay = delay if delay is not None else self.delay
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
         merged = readings.merge(SENSOR_WEIGHTS)
         # todo: implement weighted mean
         return merged.loc[merged.weight > 0].value.mean()
 
-    def read_all(self, delay=5, retries=5):
+    def read_all(self, delay=None, retries=None):
+        retries = retries if retries is not None else self.retries
+        delay = delay if delay is not None else self.delay
         while True:
             for i in range(retries):
                 try:
                     results = self.take_sensor_readings()
+                    logger.info(f"Results:\n{results}\n")
                     if self.out_path:
                         write_readings(results, self.out_path)
+                    logger.debug(f"sleeping for {delay} seconds.")
                     time.sleep(delay)
                     # clear screen
                     clear()
