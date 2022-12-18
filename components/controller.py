@@ -2,6 +2,7 @@ import logging
 import time
 from logdecorator import log_on_start, log_on_end, log_exception
 from components import Relay
+from utilities import EXIT_EVENT
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,8 @@ class Controller:
     @log_exception("encountered error:")
     def run(self, estimation_strategy, **kwargs):
         while True:
+            if EXIT_EVENT.is_set():
+                break
             try:
                 turn_on, active_time = estimation_strategy(**kwargs)
                 active_time = self.__sanitize(active_time)
@@ -89,7 +92,7 @@ if __name__ == "__main__":
             return on, t
 
         relay = Relay(21)
-        controller = Controller(relay, active_min=1, active_max=3, delay=2)
+        controller = Controller([relay], active_min=1, active_max=3, delay=2)
         controller.run(estimation_strategy=random_lux_estimator)
 
     rootLogger = get_logger(logging.DEBUG, get_abs_path("logs", "controller_demo.log"))

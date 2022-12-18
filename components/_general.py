@@ -5,8 +5,8 @@ import time
 import board
 from RPi import GPIO
 import pandas as pd
+from utilities import Record, clear, EXIT_EVENT
 
-from utilities import Record, clear
 
 logger = logging.getLogger(__name__)
 SENSOR_WEIGHTS = pd.DataFrame({
@@ -48,7 +48,7 @@ class Sensor:
                                  var,
                                  unit,
                                  getattr(self.device, var))
-                assert reading.value is not None, f"could not read sensor {sensor_name}."
+                assert reading.value is not None, f"could not read {var} on sensor {sensor_name}."
                 return reading
             except (RuntimeError, AssertionError) as e:
                 logger.warning(e)
@@ -71,8 +71,9 @@ class SensorArray:
         readings = list(
             itertools.chain.from_iterable(
                 [sensor.read_all(retries=self.retries) for sensor in self.sensors]))
+        for r in readings:
+            logger.debug(f"{r.sensor} {r.variable}: {r.value:.2f} {r.unit}")
         out = pd.DataFrame(readings)
-        logger.info(f"Sensor readings:\n{out}")
         return out
 
     def read(self, var, retries=None, delay=None):
@@ -87,10 +88,11 @@ class SensorArray:
         retries = retries if retries is not None else self.retries
         delay = delay if delay is not None else self.delay
         while True:
+            if EXIT_EVENT.is_set():
+                break
             for i in range(retries):
                 try:
                     results = self.take_sensor_readings()
-                    logger.info(f"Results:\n{results}\n")
                     if self.out_path:
                         write_readings(results, self.out_path)
                     logger.debug(f"sleeping for {delay} seconds.")
@@ -108,31 +110,31 @@ class SensorArray:
 
 
 I2C = board.I2C()
-PINS = {"0": board.D0,
-        "1": board.D1,
-        "2": board.D2,
-        "3": board.D3,
-        "4": board.D4,
-        "5": board.D5,
-        "6": board.D6,
-        "7": board.D7,
-        "8": board.D8,
-        "9": board.D9,
-        "10": board.D10,
-        "11": board.D11,
-        "12": board.D12,
-        "13": board.D13,
-        "14": board.D14,
-        "15": board.D15,
-        "16": board.D16,
-        "17": board.D17,
-        "18": board.D18,
-        "19": board.D19,
-        "20": board.D20,
-        "21": board.D21,
-        "22": board.D22,
-        "23": board.D23,
-        "24": board.D24,
-        "25": board.D25,
-        "26": board.D26,
-        "27": board.D27}
+PINS = {"0": board.D0, 0: board.D0,
+        "1": board.D1, 1: board.D1,
+        "2": board.D2, 2: board.D2,
+        "3": board.D3, 3: board.D3,
+        "4": board.D4, 4: board.D4,
+        "5": board.D5, 5: board.D5,
+        "6": board.D6, 6: board.D6,
+        "7": board.D7, 7: board.D7,
+        "8": board.D8, 8: board.D8,
+        "9": board.D9, 9: board.D9,
+        "10": board.D10, 10: board.D10,
+        "11": board.D11, 11: board.D11,
+        "12": board.D12, 12: board.D12,
+        "13": board.D13, 13: board.D13,
+        "14": board.D14, 14: board.D14,
+        "15": board.D15, 15: board.D15,
+        "16": board.D16, 16: board.D16,
+        "17": board.D17, 17: board.D17,
+        "18": board.D18, 18: board.D18,
+        "19": board.D19, 19: board.D19,
+        "20": board.D20, 20: board.D20,
+        "21": board.D21, 21: board.D21,
+        "22": board.D22, 22: board.D22,
+        "23": board.D23, 23: board.D23,
+        "24": board.D24, 24: board.D24,
+        "25": board.D25, 25: board.D25,
+        "26": board.D26, 26: board.D26,
+        "27": board.D27, 27: board.D27}

@@ -1,17 +1,18 @@
 import adafruit_scd30
-from components import Sensor, I2C
+import busio
+import board
+from components import Sensor
+
+I2C = busio.I2C(board.SCL, board.SDA, frequency=50_000)
 
 
 class SCD30(Sensor):
     def __init__(self, address, site):
         super(SCD30, self).__init__(site=site)
         self.var2unit = {"temperature": "C",
-                         "humidity": "%",
-                         "co2": "ppm"}
+                         "relative_humidity": "%",
+                         "CO2": "ppm"}
         self.device = adafruit_scd30.SCD30(I2C, address=address)
-        # for readability reasons: copy default names for variables
-        self.device.humidity = self.device.relative_humidity
-        self.device.co2 = self.device.CO2
 
 
 if __name__ == "__main__":

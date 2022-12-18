@@ -12,10 +12,15 @@ class Record:
     value: float
 
     def __init__(self, site, sensor, variable, unit, value):
+        self.var_synonyms = {
+            "relative_humidity": "humidity",
+            "CO2": "co2"
+        }
         self.site = site
         self.taken_at = datetime.now()
         self.sensor = sensor
-        self.variable = variable
+        # different sensors can have different names for the same variable
+        self.variable = self.var_synonyms.get(variable, variable)
         self.unit = unit
         self.value = value
 

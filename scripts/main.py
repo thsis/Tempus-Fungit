@@ -84,23 +84,29 @@ def read_all_sensors():
 
 
 def main():
-    read_sensor_thread = threading.Thread(target=read_all_sensors)
+    read_sensor_thread = threading.Thread(target=read_all_sensors,
+                                          name="ENV-tracker",
+                                          daemon=True)
     # environmental controls, create new thread here if you want to add another controller
     control_co2_thread = threading.Thread(target=control_environment,
                                           kwargs=CO2_CONFIG,
-                                          name="CO2-controller")
-    # control_humidity_thread = threading.Thread(target=control_environment,
-    #                                            kwargs=HUMIDITY_CONFIG,
-    #                                            name="Humidity-Controller")
+                                          name="CO2-controller",
+                                          daemon=True)
+    control_humidity_thread = threading.Thread(target=control_environment,
+                                               kwargs=HUMIDITY_CONFIG,
+                                               name="Humidity-Controller",
+                                               daemon=True)
 
     read_sensor_thread.start()
     control_co2_thread.start()
-    # control_humidity_thread.start()
+    control_humidity_thread.start()
+    read_sensor_thread.join()
 
 
 if __name__ == "__main__":
     LOG_PATH = get_abs_path("logs", "main.log")
-    LOGGER = get_logger(LOG_LEVELS["debug"], LOG_PATH)
+    LOGGER = get_logger(LOG_LEVELS["debug"], LOG_PATH,
+                        fmt="%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s] %(message)s")
 
     SECONDS_IN_MINUTE = 60
     SENSORS = [

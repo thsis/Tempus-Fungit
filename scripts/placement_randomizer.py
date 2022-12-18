@@ -1,4 +1,3 @@
-import itertools
 import numpy as np
 from pandas import DataFrame
 

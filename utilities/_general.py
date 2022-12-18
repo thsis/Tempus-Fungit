@@ -2,10 +2,13 @@ import os
 import sys
 import time
 import signal
+import threading
 import logging
 from configparser import ConfigParser
 from pathlib import Path
 
+
+EXIT_EVENT = threading.Event()
 
 class MyConfigParser(ConfigParser):
     def __int__(self, *args, **kwargs):
@@ -37,18 +40,18 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def interrupt_handler(signum, frame, cleanup_func=None):
+def interrupt_handler(signum, frame):
     print(f'Handling signal {signum} ({signal.Signals(signum).name}).')
 
-    if cleanup_func:
-        cleanup_func()
+    EXIT_EVENT.set()
 
     time.sleep(1)
     sys.exit(0)
 
 
-def get_logger(level, path_to_log_file=None):
-    log_formatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s] %(message)s")
+def get_logger(level, path_to_log_file=None, fmt=None):
+    fmt = fmt if fmt is not None else "%(asctime)s [%(levelname)s] [%(funcName)s] %(message)s"
+    log_formatter = logging.Formatter(fmt)
     logger = logging.getLogger()
     logger.setLevel(level)
 
