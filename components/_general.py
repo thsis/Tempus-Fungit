@@ -15,7 +15,7 @@ SENSOR_WEIGHTS = pd.DataFrame({
                  "temperature", "humidity",
                  "light_intensity",
                  "temperature", "pressure", "altitude"],
-    "weight": [0, 0, 1, 1, 1, 1, 0, 1, 1]
+    "weight": [0, 1, 1, 1, 1, 1, 0, 1, 1]
 })
 
 
