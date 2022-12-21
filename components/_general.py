@@ -97,8 +97,6 @@ class SensorArray:
                         write_readings(results, self.out_path)
                     logger.debug(f"sleeping for {delay} seconds.")
                     time.sleep(delay)
-                    # clear screen
-                    clear()
                     break
 
                 except Exception as e:
