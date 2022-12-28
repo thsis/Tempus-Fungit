@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from colorama import Fore, Style
 from utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS
-from components import Relay, Controller, DHT22, BH1750, BMP280, SCD30, SensorArray, PINS, write_readings
+from components import Relay, Controller, setup_sensors, SensorArray, PINS, write_readings
 
 
 def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None):
@@ -109,12 +109,7 @@ if __name__ == "__main__":
                         fmt="%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s] %(message)s")
 
     SECONDS_IN_MINUTE = 60
-    SENSORS = [
-        DHT22(address=PINS[CONFIG.get("SENSORS", "address_dht22")], site=CONFIG.get("GENERAL", "site")),
-        BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16), site=CONFIG.get("GENERAL", "site")),
-        BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16), site=CONFIG.get("GENERAL", "site")),
-        SCD30(address=int(CONFIG.get("SENSORS", "address_scd30"), base=16), site=CONFIG.get("GENERAL", "site"))
-    ]
+    SENSORS = setup_sensors(CONFIG)
 
     SENSOR_ARRAY = SensorArray(SENSORS,
                                out_path=CONFIG.get("GENERAL", "env_data_file_name"),

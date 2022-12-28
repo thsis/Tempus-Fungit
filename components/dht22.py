@@ -10,6 +10,9 @@ class DHT22(Sensor):
         self.var2unit = {"temperature": "C", "humidity": "%"}
         self.device = adafruit_dht.DHT22(address)
 
+    def __del__(self):
+        self.device.exit()
+
 
 if __name__ == "__main__":
     from utilities import CONFIG
