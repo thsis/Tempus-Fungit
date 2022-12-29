@@ -18,7 +18,7 @@ COLORS = {"Averaged": "grey",
 
 
 data_path = get_abs_path("data", CONFIG["GENERAL"]["env_data_file_name"])
-fig, axes = plt.subplots(3, 2, sharex=True, sharey=False)
+fig, axes = plt.subplots(2, 2, sharex=True, sharey=False)
 
 
 def get_data():
@@ -43,7 +43,7 @@ def pretty_label(label):
 
 
 def plot(df):
-    variables = ["temperature", "humidity", "pressure", "altitude", "light_intensity", "co2"]
+    variables = ["temperature", "humidity", "light_intensity", "co2"]
     for var, ax in zip(variables, axes.flatten()):
         ax.clear()
         ax.set_title(pretty_label(var))
