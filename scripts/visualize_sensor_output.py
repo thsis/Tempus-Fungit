@@ -63,6 +63,8 @@ def plot(df):
 
     for col in 0, 1:
         axes[-1, col].set_xlabel("Time")
+        for i, label in enumerate(axes[-1, col].xaxis.get_ticklabels()):
+            label.set_visible(i % 3 == 0)
 
 
 def animate(i):
