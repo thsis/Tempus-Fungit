@@ -1,5 +1,4 @@
 import signal
-import time
 
 import pandas as pd
 from collections import defaultdict
@@ -33,7 +32,7 @@ def get_data():
                 .assign(sensor="Averaged"))
     df = pd.concat([data, averaged.loc[averaged.taken_at <= data.taken_at.max()]], axis=0)
     out = (df
-           .loc[df.taken_at > df.taken_at.max() - pd.Timedelta(minutes=5)]
+           .loc[df.taken_at > df.taken_at.max() - pd.Timedelta(days=2)]
            .sort_values(["variable", "sensor", "taken_at"])
            .reset_index(drop=True))
     return out
