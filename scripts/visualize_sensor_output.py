@@ -59,7 +59,7 @@ def plot(df):
                     color=COLORS[sensor])
 
         ax.set_ylabel(tmp.unit.iloc[0])
-        ax.legend(frameon=False)
+        ax.legend(frameon=False, loc="lower left")
 
     for col in 0, 1:
         axes[-1, col].set_xlabel("Time")
