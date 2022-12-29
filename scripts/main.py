@@ -112,7 +112,7 @@ if __name__ == "__main__":
     SENSORS = setup_sensors(CONFIG)
 
     SENSOR_ARRAY = SensorArray(SENSORS,
-                               out_path=CONFIG.get("GENERAL", "env_data_file_name"),
+                               out_path=get_abs_path("data", CONFIG.get("GENERAL", "env_data_file_name")),
                                retries=CONFIG.getint("SENSORS", "retries"),
                                delay=CONFIG.getint("SENSORS", "delay"))
     CO2_CONFIG = CONFIG.get_controller_config("CONTROLLER_CO2")
