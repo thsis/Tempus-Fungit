@@ -47,7 +47,7 @@ def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds
     return on, _convert_time_argument(t, unit)
 
 
-def constant_time_estimator(var, active_min, active_max, delay, unit="hours", file_name=None):
+def constant_time_estimator(var, active_min, active_max, delay, unit="hours", file_name=None, **kwargs):
     now = datetime.now()
     now_hour = now.hour
     on = active_min <= now_hour <= active_max
