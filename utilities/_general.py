@@ -50,7 +50,7 @@ class MyConfigParser(ConfigParser):
             "relays": [int(i) for i in self.get(var, "relays").split(",")],
             "active_low": self.getboolean(var, "active_low"),
             "increases": self.getboolean(var, "increases", fallback=None),
-            "target": self.getfloat(var, "target"),
+            "target": self.getfloat(var, "target", fallback=None),
             "margin": self.getfloat(var, "margin", fallback=None),
             "delay": self.getint(var, "delay"),
             "active_min": self.getint(var, "active_min"),
