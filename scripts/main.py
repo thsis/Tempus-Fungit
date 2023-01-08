@@ -85,6 +85,9 @@ def control(var, relays, active_low, delay, active_min, active_max, unit, estima
                    increases=increases,
                    margin=margin,
                    unit=unit,
+                   active_min=active_min,
+                   active_max=active_max,
+                   delay=delay,
                    file_name=get_abs_path("data", file_name))
 
 
