@@ -4,15 +4,43 @@ import time
 import signal
 import threading
 import logging
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError, NoOptionError
 from pathlib import Path
 
 
 EXIT_EVENT = threading.Event()
+_UNSET = object()
+
 
 class MyConfigParser(ConfigParser):
-    def __int__(self, *args, **kwargs):
-        super().__int__(*args, **kwargs)
+    def __init__(self, path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.path = path
+        self.read(self.path)
+
+    def get(self, section, option, *, raw=False, vars=None, fallback=_UNSET):
+        self.read(self.path)
+        try:
+            d = self._unify_values(section, vars)
+        except NoSectionError:
+            if fallback is _UNSET:
+                raise
+            else:
+                return fallback
+        option = self.optionxform(option)
+        try:
+            value = d[option]
+        except KeyError:
+            if fallback is _UNSET:
+                raise NoOptionError(option, section)
+            else:
+                return fallback
+
+        if raw or value is None:
+            return value
+        else:
+            return self._interpolation.before_get(self, section, option, value,
+                                                  d)
 
     def get_controller_config(self, var):
         assert var in self.sections(), f"controller config for {var} not defined in `config.ini`"
@@ -72,5 +100,4 @@ LOG_LEVELS = {
     "debug": logging.DEBUG,
     "error": logging.ERROR}
 
-CONFIG = MyConfigParser()
-CONFIG.read(get_abs_path("config.ini"))
+CONFIG = MyConfigParser(path=get_abs_path("config.ini"))
