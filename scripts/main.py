@@ -71,9 +71,8 @@ def _convert_time_argument(x, unit):
 def control(var, relays, active_low, delay, active_min, active_max, unit,
             increases=None, target=None, margin=None, file_name=None):
     logging.info(f"start controlling {var}")
-    logging.info(f"try to keep at {target} +/- {margin * 100:.2f}%.")
-    logging.info(f"estimation strategy for turning on the device is random: " 
-                 f"device may turn on for {active_min} to {active_max} {unit}")
+    if margin:
+        logging.info(f"try to keep at {target} +/- {margin * 100:.2f}%.")
 
     relays = [Relay(pin, active_low=active_low) for pin in relays]
     controller = Controller(relays,
@@ -99,16 +98,16 @@ def main():
                                           daemon=True)
     # environmental controls, create new thread here if you want to add another controller
     control_co2_thread = threading.Thread(target=control,
-                                          kwargs=CO2_CONFIG,
+                                          kwargs=CONFIG.get_controller_config("CONTROLLER_CO2"),
                                           name="CO2-controller",
                                           daemon=True)
     control_humidity_thread = threading.Thread(target=control,
-                                               kwargs=HUMIDITY_CONFIG,
+                                               kwargs=CONFIG.get_controller_config("CONTROLLER_HUMIDITY"),
                                                name="Humidity-Controller",
                                                daemon=True)
 
     control_lights_thread = threading.Thread(target=control,
-                                             kwargs=LIGHTS_CONFIG,
+                                             kwargs=CONFIG.get_controller_config("CONTROLLER_LIGHTS"),
                                              name="Lights-Controller",
                                              daemon=True)
 
@@ -133,9 +132,6 @@ if __name__ == "__main__":
                                out_path=get_abs_path("data", CONFIG.get("GENERAL", "env_data_file_name")),
                                retries=CONFIG.getint("SENSORS", "retries"),
                                delay=CONFIG.getint("SENSORS", "delay"))
-    CO2_CONFIG = CONFIG.get_controller_config("CONTROLLER_CO2")
-    HUMIDITY_CONFIG = CONFIG.get_controller_config("CONTROLLER_HUMIDITY")
-    LIGHTS_CONFIG = CONFIG.get_controller_config("CONTROLLER_LIGHTS")
 
     signal.signal(signal.SIGINT, interrupt_handler)
     main()
