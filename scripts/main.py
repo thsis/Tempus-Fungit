@@ -10,7 +10,7 @@ from utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_L
 from components import Relay, Controller, setup_sensors, SensorArray, write_readings
 
 
-def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None):
+def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None, **kwargs):
     assert 0 < margin < 1, "`margin` must lie in (0, 1)."
     current_value = SENSOR_ARRAY.read(var)
     logging.debug(f"current value: {Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL}.")
