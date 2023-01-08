@@ -3,3 +3,6 @@ install:
 
 clean:
 	scripts/clean.sh
+
+export:
+	scripts/export.sh
