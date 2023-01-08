@@ -20,8 +20,7 @@ class TestConfig(unittest.TestCase):
                 
     def test_controller_section(self):
         controller_sections = [k for k in CONFIG.keys() if "CONTROLLER_" in k]
-        req_parameters = ["var", "relays", "active_low", "increases", "target",
-                          "margin", "delay", "active_min", "active_max", "unit"]
+        req_parameters = ["var", "relays", "active_low", "delay", "active_min", "active_max", "unit"]
 
         for section in controller_sections:
             for param in req_parameters:
