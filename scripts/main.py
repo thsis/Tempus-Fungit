@@ -51,8 +51,8 @@ def constant_time_estimator(active_min, active_max, delay, unit="hours", file_na
     now = datetime.now()
     now_hour = now.hour
     on = active_min <= now_hour <= active_max
-    logging.debug(f"keep device on: {on}.")
-    logging.debug(f"time to keep device on: {delay} {unit}.")
+    logging.debug(f"keep lights on: {on}.")
+    logging.debug(f"time to keep lights on: {delay} {unit}.")
     if file_name:
         row = pd.Series([now, on, delay], index=["taken_at", "turn_on", "duration"])
         write_readings(row.to_frame().T, file_name)
