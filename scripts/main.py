@@ -47,11 +47,11 @@ def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds
     return on, _convert_time_argument(t, unit)
 
 
-def constant_time_estimator(active_min, active_max, delay, unit="hours", file_name=None):
+def constant_time_estimator(var, active_min, active_max, delay, unit="hours", file_name=None):
     now = datetime.now()
     now_hour = now.hour
     on = active_min <= now_hour <= active_max
-    logging.debug(f"keep lights on: {on}.")
+    logging.debug(f"control {var}, keep lights on: {on}.")
     logging.debug(f"time to keep lights on: {delay} {unit}.")
     if file_name:
         row = pd.Series([now, on, delay], index=["taken_at", "turn_on", "duration"])
