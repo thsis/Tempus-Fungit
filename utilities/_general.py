@@ -43,6 +43,7 @@ class MyConfigParser(ConfigParser):
                                                   d)
 
     def get_controller_config(self, var):
+        self.read(self.path)
         assert var in self.sections(), f"controller config for {var} not defined in `config.ini`"
         assert var not in ["GENERAL", "SENSORS", "DATABASE"], f"{var} is not a config for a controller."
         out = {
