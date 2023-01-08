@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from colorama import Fore, Style
 from utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS
-from components import Relay, Controller, setup_sensors, SensorArray, PINS, write_readings
+from components import Relay, Controller, setup_sensors, SensorArray, write_readings
 
 
 def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None):
@@ -68,7 +68,7 @@ def _convert_time_argument(x, unit):
         return x
 
 
-def control(var, relays, active_low, delay, active_min, active_max, unit,
+def control(var, relays, active_low, delay, active_min, active_max, unit, estimation_strategy,
             increases=None, target=None, margin=None, file_name=None):
     logging.info(f"start controlling {var}")
     if margin:
@@ -79,7 +79,7 @@ def control(var, relays, active_low, delay, active_min, active_max, unit,
                             active_min=_convert_time_argument(active_min, unit),
                             active_max=_convert_time_argument(active_max, unit),
                             delay=_convert_time_argument(delay, unit))
-    controller.run(estimation_strategy=random_time_estimator,
+    controller.run(estimation_strategy=estimation_strategy,
                    var=var,
                    target=target,
                    increases=increases,
@@ -92,22 +92,28 @@ def read_all_sensors():
     SENSOR_ARRAY.read_all()
 
 
+def make_config(section, estimation_strategy):
+    kwargs = {**CONFIG.get_controller_config(section),
+              "estimation_strategy": estimation_strategy}
+    return kwargs
+
+
 def main():
     read_sensor_thread = threading.Thread(target=read_all_sensors,
                                           name="ENV-tracker",
                                           daemon=True)
     # environmental controls, create new thread here if you want to add another controller
     control_co2_thread = threading.Thread(target=control,
-                                          kwargs=CONFIG.get_controller_config("CONTROLLER_CO2"),
+                                          kwargs=CO2_CONFIG,
                                           name="CO2-controller",
                                           daemon=True)
     control_humidity_thread = threading.Thread(target=control,
-                                               kwargs=CONFIG.get_controller_config("CONTROLLER_HUMIDITY"),
+                                               kwargs=HUMIDITY_CONFIG,
                                                name="Humidity-Controller",
                                                daemon=True)
 
     control_lights_thread = threading.Thread(target=control,
-                                             kwargs=CONFIG.get_controller_config("CONTROLLER_LIGHTS"),
+                                             kwargs=LIGHTS_CONFIG,
                                              name="Lights-Controller",
                                              daemon=True)
 
@@ -125,6 +131,10 @@ if __name__ == "__main__":
 
     SECONDS_IN_MINUTE = 60
     MINUTES_IN_HOUR = 60
+
+    CO2_CONFIG = make_config("CONTROLLER_CO2", random_time_estimator)
+    HUMIDITY_CONFIG = make_config("CONTROLLER_HUMIDITY", random_time_estimator)
+    LIGHTS_CONFIG = make_config("CONTROLLER_LIGHTS", constant_time_estimator)
 
     SENSORS = setup_sensors(CONFIG)
 
