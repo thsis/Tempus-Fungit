@@ -44,22 +44,32 @@ def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds
 
     logging.debug(f"keep device on: {on}.")
     logging.debug(f"time to keep device on: {t} {unit}.")
-    return on, t * SECONDS_IN_MINUTE if unit == "minutes" else t
+    return on, _convert_time_argument(t, unit)
+
+
+def constant_time_estimator(active_min, active_max, delay, unit="hours", file_name=None):
+    now = datetime.now()
+    now_hour = now.hour
+    on = active_min <= now_hour <= active_max
+    logging.debug(f"keep device on: {on}.")
+    logging.debug(f"time to keep device on: {delay} {unit}.")
+    if file_name:
+        row = pd.Series([now, on, delay], index=["taken_at", "turn_on", "duration"])
+        write_readings(row.to_frame().T, file_name)
+    return on, _convert_time_argument(delay, unit)
 
 
 def _convert_time_argument(x, unit):
-    return x * SECONDS_IN_MINUTE if unit == "minutes" else x
+    if unit == "minutes":
+        return x * SECONDS_IN_MINUTE
+    elif unit == "hours":
+        return x * SECONDS_IN_MINUTE * MINUTES_IN_HOUR
+    else:
+        return x
 
 
-def control_environment(var, relays, active_low,
-                        increases,
-                        target,
-                        margin,
-                        delay,
-                        active_min,
-                        active_max,
-                        unit,
-                        file_name):
+def control(var, relays, active_low, delay, active_min, active_max, unit,
+            increases=None, target=None, margin=None, file_name=None):
     logging.info(f"start controlling {var}")
     logging.info(f"try to keep at {target} +/- {margin * 100:.2f}%.")
     logging.info(f"estimation strategy for turning on the device is random: " 
@@ -88,18 +98,24 @@ def main():
                                           name="ENV-tracker",
                                           daemon=True)
     # environmental controls, create new thread here if you want to add another controller
-    control_co2_thread = threading.Thread(target=control_environment,
+    control_co2_thread = threading.Thread(target=control,
                                           kwargs=CO2_CONFIG,
                                           name="CO2-controller",
                                           daemon=True)
-    control_humidity_thread = threading.Thread(target=control_environment,
+    control_humidity_thread = threading.Thread(target=control,
                                                kwargs=HUMIDITY_CONFIG,
                                                name="Humidity-Controller",
                                                daemon=True)
 
+    control_lights_thread = threading.Thread(target=control,
+                                             kwargs=LIGHTS_CONFIG,
+                                             name="Lights-Controller",
+                                             daemon=True)
+
     read_sensor_thread.start()
     control_co2_thread.start()
     control_humidity_thread.start()
+    control_lights_thread.start()
     read_sensor_thread.join()
 
 
@@ -109,6 +125,8 @@ if __name__ == "__main__":
                         fmt="%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s] %(message)s")
 
     SECONDS_IN_MINUTE = 60
+    MINUTES_IN_HOUR = 60
+
     SENSORS = setup_sensors(CONFIG)
 
     SENSOR_ARRAY = SensorArray(SENSORS,
@@ -117,6 +135,7 @@ if __name__ == "__main__":
                                delay=CONFIG.getint("SENSORS", "delay"))
     CO2_CONFIG = CONFIG.get_controller_config("CONTROLLER_CO2")
     HUMIDITY_CONFIG = CONFIG.get_controller_config("CONTROLLER_HUMIDITY")
+    LIGHTS_CONFIG = CONFIG.get_controller_config("CONTROLLER_LIGHTS")
 
     signal.signal(signal.SIGINT, interrupt_handler)
     main()
