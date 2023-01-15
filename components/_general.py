@@ -72,7 +72,10 @@ class SensorArray:
             itertools.chain.from_iterable(
                 [sensor.read_all(retries=self.retries) for sensor in self.sensors]))
         for r in readings:
-            logger.debug(f"{r.sensor} {r.variable}: {r.value:.2f} {r.unit}")
+            if r.value:
+                logger.debug(f"{r.sensor} {r.variable}: {r.value:.2f} {r.unit}")
+            else:
+                logger.debug(f"could not read {r.variable} on sensor {r.sensor}")
         out = pd.DataFrame(readings)
         return out
 
