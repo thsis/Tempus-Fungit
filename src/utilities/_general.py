@@ -62,7 +62,7 @@ class MyConfigParser(ConfigParser):
 
 
 def get_abs_path(*args):
-    return os.path.join(Path(__file__).parent.parent, *args)
+    return os.path.join(Path(__file__).parent.parent.parent, *args)
 
 
 def clear():
