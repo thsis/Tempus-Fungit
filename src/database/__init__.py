@@ -1,6 +1,6 @@
 import os
 import psycopg2
-from utilities import get_abs_path, CONFIG
+from src.utilities import get_abs_path, CONFIG
 
 QUERY_PATH = get_abs_path("database", "queries")
 

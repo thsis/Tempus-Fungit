@@ -1,8 +1,8 @@
 import logging
 import time
 from logdecorator import log_on_start, log_on_end, log_exception
-from components import Relay
-from utilities import EXIT_EVENT
+from src.components import Relay
+from src.utilities import EXIT_EVENT
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +71,8 @@ class Controller:
 
 if __name__ == "__main__":
     import signal
-    from components import BH1750
-    from utilities import CONFIG, get_abs_path, interrupt_handler, get_logger
+    from src.components import BH1750
+    from src.utilities import CONFIG, get_abs_path, interrupt_handler, get_logger
 
 
     def main():

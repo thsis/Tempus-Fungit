@@ -1,5 +1,5 @@
 import unittest
-from utilities import CONFIG
+from src.utilities import CONFIG
 
 
 class TestConfig(unittest.TestCase):

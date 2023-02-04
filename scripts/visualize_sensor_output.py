@@ -4,7 +4,7 @@ import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from utilities import get_abs_path, CONFIG, interrupt_handler
+from src.utilities import get_abs_path, CONFIG, interrupt_handler
 plt.style.use("dark_background")
 
 LINESTYLES = defaultdict(lambda: "-")

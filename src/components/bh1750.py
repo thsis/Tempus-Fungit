@@ -1,6 +1,5 @@
 import adafruit_bh1750
-from RPi import GPIO
-from components import Sensor, I2C
+from src.components import Sensor, I2C
 
 
 class BH1750(Sensor):
@@ -15,7 +14,7 @@ class BH1750(Sensor):
 
 
 if __name__ == "__main__":
-    from utilities import CONFIG
+    from src.utilities import CONFIG
 
     bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16), site=CONFIG.get("GENERAL", "site"))
     readings = bh1750.read_all(retries=5)

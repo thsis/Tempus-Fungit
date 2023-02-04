@@ -1,6 +1,6 @@
 import unittest
-from components import PINS, DHT22, SCD30, BH1750, BMP280, SensorArray
-from utilities import CONFIG
+from src.components import PINS, DHT22, SCD30, BH1750, BMP280, SensorArray
+from src.utilities import CONFIG
 
 
 class TestSensors(unittest.TestCase):

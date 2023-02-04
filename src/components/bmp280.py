@@ -1,5 +1,5 @@
 import adafruit_bmp280
-from components import Sensor, I2C
+from src.components import Sensor, I2C
 
 
 class BMP280(Sensor):
@@ -15,7 +15,7 @@ class BMP280(Sensor):
 
 
 if __name__ == "__main__":
-    from utilities import CONFIG
+    from src.utilities import CONFIG
 
     bmp280 = BMP280(address=int(CONFIG.get("SENSORS", "address_bmp280"), base=16), site=CONFIG.get("GENERAL", "site"))
     readings = bmp280.read_all(retries=5)

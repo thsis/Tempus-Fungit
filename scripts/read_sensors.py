@@ -1,6 +1,6 @@
 import signal
-from utilities import CONFIG, get_logger, get_abs_path, LOG_LEVELS, interrupt_handler
-from components import setup_sensors, SensorArray
+from src.utilities import CONFIG, get_logger, get_abs_path, LOG_LEVELS, interrupt_handler
+from src.components import setup_sensors, SensorArray
 
 
 def main():

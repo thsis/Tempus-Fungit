@@ -3,9 +3,8 @@ import logging
 import itertools
 import time
 import board
-from RPi import GPIO
 import pandas as pd
-from utilities import Record, clear, EXIT_EVENT
+from src.utilities import Record, EXIT_EVENT
 
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import adafruit_scd30
 import busio
 import board
-from components import Sensor
+from src.components import Sensor
 
 I2C = busio.I2C(board.SCL, board.SDA, frequency=50_000)
 
@@ -16,7 +16,7 @@ class SCD30(Sensor):
 
 
 if __name__ == "__main__":
-    from utilities import CONFIG
+    from src.utilities import CONFIG
 
     scd30 = SCD30(address=int(CONFIG.get("SENSORS", "address_scd30"), base=16), site=CONFIG.get("GENERAL", "site"))
     readings = scd30.read_all(retries=5)

@@ -66,7 +66,7 @@ class Relay:
 if __name__ == '__main__':
     import time
     import signal
-    from utilities import interrupt_handler
+    from src.utilities import interrupt_handler
 
 
     def main():

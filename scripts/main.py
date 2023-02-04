@@ -6,8 +6,8 @@ import threading
 import pandas as pd
 from datetime import datetime
 from colorama import Fore, Style
-from utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS
-from components import Relay, Controller, setup_sensors, SensorArray, write_readings
+from src.utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS
+from src.components import Relay, Controller, setup_sensors, SensorArray, write_readings
 
 
 def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None, **kwargs):
