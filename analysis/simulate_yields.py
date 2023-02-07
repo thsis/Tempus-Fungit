@@ -5,6 +5,7 @@ import pandas as pd
 from copy import copy
 from src.utilities import get_abs_path
 from colorama import Style, Fore
+from dataclasses import dataclass
 
 SIMULATION_MODE = "random"
 
@@ -36,6 +37,38 @@ def sample_weight(mean, std=None, mode="const"):
         return mean
     elif mode == "random":
         return np.random.normal(loc=mean, scale=std)
+
+
+@dataclass
+class BlockRecord:
+    block_id: int
+    age: int
+    phase: str
+    infected: bool
+    flush: int
+    substrate_weight: float
+    fruit_weight: float
+
+    def __init__(self, block_id, age, phase, infected, flush, substrate_weight, fruit_weight):
+        self.block_id = block_id
+        self.age = age
+        self.phase = phase
+        self.infected = infected
+        self.flush = flush
+        self.substrate_weight = substrate_weight
+        self.fruit_weight = fruit_weight
+
+    def __str__(self):
+        identifier = f"Block {self.block_id}"
+        health_status = f"{Fore.RED}Infected{Style.RESET_ALL}" if self.infected else f"{Fore.GREEN}Healthy{Style.RESET_ALL}"
+        current_phase = f"{Fore.YELLOW}{self.phase}{Style.RESET_ALL}"
+        out ="\n".join([f"{identifier}",
+                        f"Health Status: {health_status}",
+                        f"Cuffent Phase: {current_phase}",
+                        f"Current Flush: {self.flush}",
+                        f"Current Age: {self.age}",
+                        f"Current Weight: {self.fruit_weight}"])
+        return out
 
 
 class Block:
@@ -119,15 +152,15 @@ class Block:
         self.__grow()
 
     def inspect(self):
-        print(f"{self}")
-        print("Health Status:",
-              f"{Fore.RED}Infected{Style.RESET_ALL}" if self.infected else f"{Fore.GREEN}Healthy{Style.RESET_ALL}")
-        print("Current Phase:",
-              f"{Fore.YELLOW}{self.phase}{Style.RESET_ALL}")
-        print("Current Flush:", self.flush)
-        print(f"age: {self.age}")
-        print(f"current weight: {self.fruit_weight}")
-        print(f"past yields: {self.yields}")
+        record = BlockRecord(block_id=self.id,
+                             age=self.age,
+                             phase=self.phase,
+                             infected=self.infected,
+                             flush=self.flush,
+                             substrate_weight=self.substrate_weight,
+                             fruit_weight=self.fruit_weight)
+        print(record)
+        return record
 
     def destroy(self):
         pass
