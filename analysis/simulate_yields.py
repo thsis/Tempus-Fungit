@@ -6,7 +6,9 @@ from copy import copy
 from src.utilities import get_abs_path
 from colorama import Style, Fore
 from dataclasses import dataclass
+from tqdm import trange
 
+# const or random
 SIMULATION_MODE = "random"
 
 BAG_WEIGHT = 1000
@@ -17,7 +19,9 @@ P_INFECTION = 0.25
 P_INFECTION_PER_WEEK = 1 - (1 - P_INFECTION)**(1/T_COLONIZATION)
 
 MAX_LIFETIME_YIELD = 0.5 * BAG_WEIGHT
-YIELD_DECAY_MODE = "exponential"
+
+# exponential or linear
+YIELD_DECAY_MODE = "linear"
 # this is the only real-valued root of the polynomial x + x**2 + x**3. I.e.
 YIELD_DECAY_RATE_PER_FLUSH = 0.54368
 
@@ -48,8 +52,9 @@ class BlockRecord:
     flush: int
     substrate_weight: float
     fruit_weight: float
+    harvested: float
 
-    def __init__(self, block_id, age, phase, infected, flush, substrate_weight, fruit_weight):
+    def __init__(self, block_id, age, phase, infected, flush, substrate_weight, fruit_weight, harvested=0):
         self.block_id = block_id
         self.age = age
         self.phase = phase
@@ -57,6 +62,7 @@ class BlockRecord:
         self.flush = flush
         self.substrate_weight = substrate_weight
         self.fruit_weight = fruit_weight
+        self.harvested = harvested
 
     def __str__(self):
         identifier = f"Block {self.block_id}"
@@ -84,6 +90,7 @@ class Block:
         self.flush = 0
         self.substrate_weight = BAG_WEIGHT
         self.fruit_weight = 0
+        self.harvested = 0
         self.yields = []
 
         self.time_to_colonize = sample_time(T_COLONIZATION, SIMULATION_MODE)
@@ -99,14 +106,14 @@ class Block:
 
     def __grow(self):
         if (self.age > self.time_to_colonize) and (self.flush < 3) and not self.infected:
-            t = self.__get_time_since_colonization_or_last_harvest()
+            t = self.get_time_since_colonization_or_last_harvest()
 
             if YIELD_DECAY_MODE == "linear":
                 self.fruit_weight = self.__get_linear_iteration_growth(t)
             elif YIELD_DECAY_MODE == "exponential":
                 self.fruit_weight = self.__get_exponential_iteration_growth(t)
 
-    def __get_time_since_colonization_or_last_harvest(self):
+    def get_time_since_colonization_or_last_harvest(self):
         if self.flush == 0:
             t = self.age - self.time_to_colonize
         else:
@@ -126,7 +133,8 @@ class Block:
         # however, this is impossible with the standard mathematical formulation
         # instead, we take the time it takes to achieve one gram less than the maximum possible yield
         rate = (1/yield_for_flush) ** (1/self.time_to_fruit)
-        weight = np.round(yield_for_flush - yield_for_flush * rate**t)
+        progress = min(self.time_to_fruit, t)
+        weight = np.round(yield_for_flush - yield_for_flush * rate**progress)
         return weight
 
     def __check_phase(self):
@@ -143,6 +151,7 @@ class Block:
             self.flush += 1
             self.age_at_last_harvest = copy(self.age)
             self.yields.append(fruit_weight)
+            self.harvested = fruit_weight
             return fruit_weight
 
     def mature(self):
@@ -158,12 +167,10 @@ class Block:
                              infected=self.infected,
                              flush=self.flush,
                              substrate_weight=self.substrate_weight,
-                             fruit_weight=self.fruit_weight)
-        print(record)
+                             fruit_weight=self.fruit_weight,
+                             harvested=copy(self.harvested))
+        self.harvested = 0
         return record
-
-    def destroy(self):
-        pass
 
 
 class Martha:
@@ -212,14 +219,52 @@ class Martha:
         for b in self.contents:
             b.mature()
 
+    def get_status(self):
+        status = pd.DataFrame([b.inspect() for b in self.contents])
+        return status
+
+
+def harvest_after_j_weeks(block, j):
+    return block.phase == "FRUITING" and block.get_time_since_colonization_or_last_harvest() >= j
+
+
+def remove_after_infection_or_k_flushes(block, k):
+    return block.infected or block.flush >= k
+
+
+def simulate(replications, weeks, blocks, harvest_strategy, harvest_kwargs, remove_strategy, remove_kwargs):
+    out = []
+    for i in trange(replications):
+        martha = Martha()
+        for w in range(weeks):
+            martha.insert_blocks(blocks)
+            martha.harvest_blocks(harvest_strategy, **harvest_kwargs)
+            martha.remove_blocks(remove_strategy, **remove_kwargs)
+            status = (martha
+                      .get_status()
+                      .assign(replication=i,
+                              week=w))
+            out.append(status)
+            martha.pass_time()
+
+    return pd.concat(out)
+
+
+def main(args):
+    data = simulate(replications=args.bootstrap_iterations,
+                    weeks=args.time_frame,
+                    blocks=args.blocks,
+                    harvest_strategy=harvest_after_j_weeks, harvest_kwargs= {"j": args.grow_time},
+                    remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": args.remove_after})
+    if args.outfile:
+        data.to_csv(get_abs_path("data", f"{args.outfile}.csv"))
+
+# todo: add options to restrict martha space
+# todo: add visualizations
+# todo: add cli
+# todo: add options for random/const and linear/exponential
 
 if __name__ == "__main__":
-    martha = Martha()
-    for i in range(51):
-        martha.insert_blocks(5)
-        iteration_yield = martha.harvest_blocks(lambda x: x.fruit_weight > 50)
-        print(f"This weeks yield: {Fore.YELLOW}{iteration_yield}{Style.RESET_ALL}")
-        martha.remove_blocks(lambda x: x.flush > 2 or x.infected)
-        martha.pass_time()
-        martha.inspect()
-
+    data = simulate(replications=500, weeks=52, blocks=5,
+                    harvest_strategy=harvest_after_j_weeks, harvest_kwargs={"j": 6},
+                    remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": 2})
