@@ -1,32 +1,15 @@
-import warnings
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from copy import copy
 from src.utilities import get_abs_path
 from colorama import Style, Fore
 from dataclasses import dataclass
 from tqdm import trange
 
-# const or random
-SIMULATION_MODE = "random"
 
-BAG_WEIGHT = 1000
-T_COLONIZATION = 6
-T_FRUITING = 6
-
-P_INFECTION = 0.25
-P_INFECTION_PER_WEEK = 1 - (1 - P_INFECTION)**(1/T_COLONIZATION)
-
-MAX_LIFETIME_YIELD = 0.5 * BAG_WEIGHT
-
-# exponential or linear
-YIELD_DECAY_MODE = "linear"
-# this is the only real-valued root of the polynomial x + x**2 + x**3. I.e.
-YIELD_DECAY_RATE_PER_FLUSH = 0.54368
-
-
-def sample_time(lam, mode="const"):
+def sample_time(lam, mode):
     if mode == "const":
         return lam
     elif mode == "random":
@@ -68,19 +51,20 @@ class BlockRecord:
         identifier = f"Block {self.block_id}"
         health_status = f"{Fore.RED}Infected{Style.RESET_ALL}" if self.infected else f"{Fore.GREEN}Healthy{Style.RESET_ALL}"
         current_phase = f"{Fore.YELLOW}{self.phase}{Style.RESET_ALL}"
-        out ="\n".join([f"{identifier}",
-                        f"Health Status: {health_status}",
-                        f"Cuffent Phase: {current_phase}",
-                        f"Current Flush: {self.flush}",
-                        f"Current Age: {self.age}",
-                        f"Current Weight: {self.fruit_weight}"])
+        out = "\n".join([f"{identifier}",
+                         f"Health Status: {health_status}",
+                         f"Cuffent Phase: {current_phase}",
+                         f"Current Flush: {self.flush}",
+                         f"Current Age: {self.age}",
+                         f"Current Weight: {self.fruit_weight}"])
         return out
 
 
 class Block:
     counter = 0
 
-    def __init__(self):
+    def __init__(self, simulation_mode, yield_decay_mode, bag_weight, max_lifetime_factor,
+                 mean_t_colonization, mean_t_fruiting, p_infection):
         Block.counter += 1
         self.id = copy(Block.counter)
         self.age = 0
@@ -88,29 +72,34 @@ class Block:
         self.infected = False
         self.phase = "COLONIZATION"
         self.flush = 0
-        self.substrate_weight = BAG_WEIGHT
+        self.substrate_weight = bag_weight
         self.fruit_weight = 0
         self.harvested = 0
         self.yields = []
-
-        self.time_to_colonize = sample_time(T_COLONIZATION, SIMULATION_MODE)
-        self.time_to_fruit = sample_time(T_FRUITING, SIMULATION_MODE)
-        self.max_lifetime_yield = sample_weight(MAX_LIFETIME_YIELD, SIMULATION_MODE)
+        self.simulation_mode = simulation_mode
+        self.bag_weight = bag_weight
+        self.max_lifetime_factor = max_lifetime_factor
+        self.max_lifetime_yield = self.max_lifetime_factor * self.bag_weight
+        self.yield_decay_mode = yield_decay_mode
+        self.time_to_colonize = sample_time(mean_t_colonization, self.simulation_mode)
+        self.p_infection_per_week = 1 - (1 - p_infection) ** (1 / self.time_to_colonize)
+        self.time_to_fruit = sample_time(mean_t_fruiting, self.simulation_mode)
+        self.max_lifetime_yield = sample_weight(self.max_lifetime_yield, self.simulation_mode)
 
     def __str__(self):
         return f"Block {self.id}"
 
     def __infect(self):
-        if (self.phase == "COLONIZATION") and (np.random.random() <= P_INFECTION_PER_WEEK):
+        if (self.phase == "COLONIZATION") and (np.random.random() <= self.p_infection_per_week):
             self.infected = True
 
     def __grow(self):
         if (self.age > self.time_to_colonize) and (self.flush < 3) and not self.infected:
             t = self.get_time_since_colonization_or_last_harvest()
 
-            if YIELD_DECAY_MODE == "linear":
+            if self.yield_decay_mode == "linear":
                 self.fruit_weight = self.__get_linear_iteration_growth(t)
-            elif YIELD_DECAY_MODE == "exponential":
+            elif self.yield_decay_mode == "exponential":
                 self.fruit_weight = self.__get_exponential_iteration_growth(t)
 
     def get_time_since_colonization_or_last_harvest(self):
@@ -128,7 +117,9 @@ class Block:
         return weight
 
     def __get_exponential_iteration_growth(self, t):
-        yield_for_flush = MAX_LIFETIME_YIELD * YIELD_DECAY_RATE_PER_FLUSH ** (self.flush + 1)
+        # this is the only real-valued root of the polynomial x + x**2 + x**3. I.e.
+        yield_decay_rate_per_flush = 0.54368
+        yield_for_flush = self.max_lifetime_yield * yield_decay_rate_per_flush ** (self.flush + 1)
         # calculate rate of growth: at the end of the fruit growth period, the maximum yield has to be achieved
         # however, this is impossible with the standard mathematical formulation
         # instead, we take the time it takes to achieve one gram less than the maximum possible yield
@@ -176,21 +167,20 @@ class Block:
 class Martha:
     counter = 0
 
-    def __init__(self, capacity=np.inf):
-        self.capacity = capacity
+    def __init__(self, capacity=None, block_kwargs=None):
+        self.capacity = capacity if capacity else np.inf
         self.contents = []
         self.id = copy(Martha.counter)
+        self.block_kwargs = block_kwargs if block_kwargs else {}
 
     def __str__(self):
         return f"Martha {self.id}"
 
     def insert_blocks(self, num_blocks):
         for _ in range(num_blocks):
-            if self.get_total_number_of_blocks() <= self.capacity:
-                block = Block()
+            if self.get_total_number_of_blocks() < self.capacity:
+                block = Block(**self.block_kwargs)
                 self.contents.append(block)
-            else:
-                warnings.warn(f"attempted to add more blocks than there is capacity in {self}.")
 
     def harvest_blocks(self, strategy, *args, **kwargs):
         res = [b.harvest() for b in self.contents if strategy(b, *args, **kwargs)]
@@ -232,39 +222,93 @@ def remove_after_infection_or_k_flushes(block, k):
     return block.infected or block.flush >= k
 
 
-def simulate(replications, weeks, blocks, harvest_strategy, harvest_kwargs, remove_strategy, remove_kwargs):
+def simulate(replications, capacity, weeks, blocks, harvest_strategy, harvest_kwargs, remove_strategy, remove_kwargs,
+             block_kwargs=None):
     out = []
-    for i in trange(replications):
-        martha = Martha()
+    block_kwargs = block_kwargs if block_kwargs else {}
+    for i in trange(replications, ncols=80):
+        martha = Martha(capacity=capacity, block_kwargs=block_kwargs)
         for w in range(weeks):
             martha.insert_blocks(blocks)
             martha.harvest_blocks(harvest_strategy, **harvest_kwargs)
-            martha.remove_blocks(remove_strategy, **remove_kwargs)
+
             status = (martha
                       .get_status()
                       .assign(replication=i,
                               week=w))
             out.append(status)
+            martha.remove_blocks(remove_strategy, **remove_kwargs)
             martha.pass_time()
-
-    return pd.concat(out)
+    col_order = ["replication", "week", "block_id", "substrate_weight", "age",
+                 "phase", "infected", "flush", "fruit_weight", "harvested"]
+    return pd.concat(out).loc[:, col_order]
 
 
 def main(args):
-    data = simulate(replications=args.bootstrap_iterations,
-                    weeks=args.time_frame,
+    block_kwargs = {
+        "simulation_mode": args.simulation_mode,
+        "yield_decay_mode": args.yield_decay_mode,
+        "bag_weight": args.bag_weight,
+        "max_lifetime_factor": args.max_lifetime_factor,
+        "mean_t_colonization": args.mean_t_colonization,
+        "mean_t_fruiting": args.mean_t_fruiting,
+        "p_infection": args.p_infection}
+
+    data = simulate(replications=args.replications,
+                    capacity=args.capacity,
+                    weeks=args.weeks,
                     blocks=args.blocks,
                     harvest_strategy=harvest_after_j_weeks, harvest_kwargs= {"j": args.grow_time},
-                    remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": args.remove_after})
+                    remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": args.remove_after_flush},
+                    block_kwargs=block_kwargs)
+
+    harvests = (data
+                .groupby(["replication", "week"])
+                .agg({"harvested": "sum", "fruit_weight": "sum"})
+                .reset_index())
+
+    blocks = (data
+              .groupby(["replication", "week"])
+              .agg({"block_id": "nunique", "infected": "sum"})
+              .rename(columns={"block_id": "number_of_blocks",
+                               "infected": "number_of_infected_blocks"})
+              .reset_index())
+
+    p_harvest = sns.violinplot(data=harvests, x="week", y="harvested")
+    plt.show()
+    p_block_total = sns.violinplot(data=blocks, x="week", y="number_of_blocks")
+    plt.show()
+    p_block_infected = sns.violinplot(data=blocks, x="week", y="number_of_infected_blocks")
+    plt.show()
+
     if args.outfile:
         data.to_csv(get_abs_path("data", f"{args.outfile}.csv"))
+        p_harvest.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_harvest.png"))
+        p_block_total.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_blocks_total.png"))
+        p_block_infected.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_blocks_infected.png"))
 
-# todo: add options to restrict martha space
+
+
 # todo: add visualizations
-# todo: add cli
-# todo: add options for random/const and linear/exponential
+
 
 if __name__ == "__main__":
-    data = simulate(replications=500, weeks=52, blocks=5,
-                    harvest_strategy=harvest_after_j_weeks, harvest_kwargs={"j": 6},
-                    remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": 2})
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--simulation-mode", default="const")
+    parser.add_argument("--yield-decay-mode", default="linear")
+    parser.add_argument("--bag-weight", default=1000, type=float)
+    parser.add_argument("--max-lifetime-factor", default=0.5, type=float)
+    parser.add_argument("--mean-t-colonization", default=6, type=float)
+    parser.add_argument("--mean-t-fruiting", default=6, type=float)
+    parser.add_argument("--p-infection", default=0.25, type=float)
+    parser.add_argument("--replications", default=100, type=int)
+    parser.add_argument("--weeks", default=52, type=int)
+    parser.add_argument("--blocks", default=8, type=int)
+    parser.add_argument("--capacity", default=None, type=int)
+    parser.add_argument("--grow-time", default=8, type=int)
+    parser.add_argument("--remove-after-flush", default=3, type=int)
+    parser.add_argument("--outfile", default=None)
+
+    ARGS = parser.parse_args()
+    main(ARGS)
