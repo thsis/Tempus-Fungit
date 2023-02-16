@@ -69,8 +69,8 @@ def construct_data_frame(name, title, instructions, ingredients):
     return df
 
 
-def save_to_seeds_directory(df):
-    destination = get_abs_path("data", "seeds", "recipes.csv")
+def save_to_recipe_directory(df):
+    destination = get_abs_path("recipes", "recipes.csv")
     df.to_csv(destination, mode="a", header=not os.path.exists(destination))
 
 
@@ -82,5 +82,5 @@ if __name__ == "__main__":
     create_recipe(args.RECIPE, OUTFILE)
     NAME, TITLE, INGREDIENTS, INSTRUCTIONS = validate_recipe(args.RECIPE, OUTFILE)
     DF = construct_data_frame(name=NAME, title=TITLE, ingredients=INGREDIENTS, instructions=INSTRUCTIONS)
-    save_to_seeds_directory(DF)
+    save_to_recipe_directory(DF)
 
