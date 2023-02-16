@@ -70,8 +70,8 @@ def construct_data_frame(name, title, instructions, ingredients):
 
 
 def save_to_seeds_directory(df):
-    seed_file = get_abs_path("data", "seeds", "recipes.csv")
-    df.to_csv(seed_file, mode="a", header=not os.path.exists(seed_file))
+    destination = get_abs_path("data", "seeds", "recipes.csv")
+    df.to_csv(destination, mode="a", header=not os.path.exists(destination))
 
 
 if __name__ == "__main__":
