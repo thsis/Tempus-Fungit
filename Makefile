@@ -9,7 +9,7 @@ endif
 prog: # ...
     # ...
 
-.PHONY: recipe help
+.PHONY: recipe help clean export
 
 ## create a recipe and update the csv file that keeps track of them.
 recipe:
@@ -27,6 +27,9 @@ clean:
 export:
 	scripts/export.sh
 
+## mount the external hard drive
+mount_external_hdd:
+	mount /dev/sda ~/Tempus-Fungit-DB
 
 #################################################################################
 # Self Documenting Commands                                                     #
