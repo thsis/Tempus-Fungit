@@ -42,10 +42,17 @@ create database dev;
 create database prod;
 ```
 
-and connect to the `dev` database:
+and - optionally - connect to the `dev` database:
 
 ```psql
 connect \dev
+```
+
+## Enable postgres Server on Startup
+
+```bash
+sudo update-rc.d postgresql enable
+sudo systemctl enable postgresql
 ```
 
 ## Create Tables for Raw Data

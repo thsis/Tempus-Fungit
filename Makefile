@@ -27,9 +27,6 @@ clean:
 export:
 	scripts/export.sh
 
-## mount the external hard drive
-mount_external_hdd:
-	mount /dev/sda ~/Tempus-Fungit-DB
 
 #################################################################################
 # Self Documenting Commands                                                     #
