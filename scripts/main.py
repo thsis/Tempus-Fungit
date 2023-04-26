@@ -58,6 +58,16 @@ def constant_time_estimator(var, active_min, active_max, delay, unit="hours", fi
         write_readings(row.to_frame().T, file_name)
     return on, _convert_time_argument(delay, unit)
 
+def alternating_time_estimator(var, delay, unit="hours", file_name=None, **kwargs):
+    now = datetime.now()
+    on = now.hour % 2 and now.minute <= delay
+    logging.debug(f"control {var}, keep lights on: {on}.")
+    logging.debug(f"time to keep device on: {delay} {unit}.")
+    if file_name:
+        row = pd.Series([now, on, delay], index=["taken_at", "turn_on", "duration"])
+        write_readings(row.to_frame().T, file_name)
+    return on, _convert_time_argument(delay, unit)
+
 
 def _convert_time_argument(x, unit):
     if unit == "minutes":
@@ -135,7 +145,7 @@ if __name__ == "__main__":
     SECONDS_IN_MINUTE = 60
     MINUTES_IN_HOUR = 60
 
-    CO2_CONFIG = make_config("CONTROLLER_CO2", random_time_estimator)
+    CO2_CONFIG = make_config("CONTROLLER_CO2", alternating_time_estimator)
     HUMIDITY_CONFIG = make_config("CONTROLLER_HUMIDITY", random_time_estimator)
     LIGHTS_CONFIG = make_config("CONTROLLER_LIGHTS", constant_time_estimator)
 
