@@ -3,6 +3,7 @@ import logging
 import itertools
 import time
 import board
+import numpy as np
 import pandas as pd
 from src.utilities import Record, EXIT_EVENT
 
@@ -89,7 +90,7 @@ class SensorArray:
             # todo: implement weighted mean
             return merged.loc[merged.weight > 0].value.mean()
         else:
-            return None
+            return np.nan
 
     def read_all(self, delay=None, retries=None):
         retries = retries if retries is not None else self.retries
