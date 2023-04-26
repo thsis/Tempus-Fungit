@@ -14,6 +14,7 @@ from src.components import Relay, Controller, setup_sensors, SensorArray, write_
 def random_time_estimator(var, target, increases=True, margin=0.1, unit="seconds", file_name=None, **kwargs):
     assert 0 < margin < 1, "`margin` must lie in (0, 1)."
     current_value = SENSOR_ARRAY.read(var)
+    print(current_value)
     logging.debug(f"current value: {Fore.YELLOW}{current_value:.2f}{Style.RESET_ALL}.")
     logging.debug(f"turning on the connected device {'increases' if increases else 'decreases'} {var}.")
     lower = (1 - margin) * target
