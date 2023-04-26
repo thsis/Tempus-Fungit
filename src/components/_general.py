@@ -89,7 +89,7 @@ class SensorArray:
             # todo: implement weighted mean
             return merged.loc[merged.weight > 0].value.mean()
         else:
-            return readings
+            return None
 
     def read_all(self, delay=None, retries=None):
         retries = retries if retries is not None else self.retries
