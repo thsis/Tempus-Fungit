@@ -2,6 +2,7 @@ import logging
 import signal
 import random
 import threading
+import time
 
 import pandas as pd
 from datetime import datetime
@@ -112,19 +113,22 @@ def make_config(section, estimation_strategy):
 
 
 def main():
+    time.sleep(1)
     read_sensor_thread = threading.Thread(target=read_all_sensors,
                                           name="ENV-tracker",
                                           daemon=True)
     # environmental controls, create new thread here if you want to add another controller
+    time.sleep(1)
     control_co2_thread = threading.Thread(target=control,
                                           kwargs=CO2_CONFIG,
                                           name="CO2-controller",
                                           daemon=True)
+    time.sleep(1)
     control_humidity_thread = threading.Thread(target=control,
                                                kwargs=HUMIDITY_CONFIG,
                                                name="Humidity-Controller",
                                                daemon=True)
-
+    time.sleep(1)
     control_lights_thread = threading.Thread(target=control,
                                              kwargs=LIGHTS_CONFIG,
                                              name="Lights-Controller",

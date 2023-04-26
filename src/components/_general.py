@@ -82,11 +82,14 @@ class SensorArray:
         retries = retries if retries is not None else self.retries
         delay = delay if delay is not None else self.delay
         readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
-        print(readings)
-        print(SENSOR_WEIGHTS)
-        merged = readings.merge(SENSOR_WEIGHTS)
-        # todo: implement weighted mean
-        return merged.loc[merged.weight > 0].value.mean()
+        if readings:
+            print(readings)
+            print(SENSOR_WEIGHTS)
+            merged = readings.merge(SENSOR_WEIGHTS)
+            # todo: implement weighted mean
+            return merged.loc[merged.weight > 0].value.mean()
+        else:
+            return readings
 
     def read_all(self, delay=None, retries=None):
         retries = retries if retries is not None else self.retries
