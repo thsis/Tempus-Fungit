@@ -42,7 +42,8 @@ def pretty_label(label):
     return " ".join([lab.capitalize() for lab in label.split("_")])
 
 
-def plot(df, fig_path=None):
+def plot(fig_path=None):
+    df = get_data()
     variables = ["temperature", "humidity", "light_intensity", "co2"]
     for var, ax in zip(variables, axes.flatten()):
         ax.clear()
@@ -71,8 +72,7 @@ def plot(df, fig_path=None):
 
 
 def animate(i):
-    tmp = get_data()
-    plot(tmp)
+    plot()
 
 
 def monitor():
