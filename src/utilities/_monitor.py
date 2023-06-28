@@ -1,5 +1,5 @@
 import signal
-
+import subprocess
 import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot as plt
@@ -42,8 +42,7 @@ def pretty_label(label):
     return " ".join([lab.capitalize() for lab in label.split("_")])
 
 
-def plot(fig_path=None):
-    df = get_data()
+def plot(df, fig_path=None):
     variables = ["temperature", "humidity", "light_intensity", "co2"]
     for var, ax in zip(variables, axes.flatten()):
         ax.clear()
@@ -72,15 +71,17 @@ def plot(fig_path=None):
 
 
 def animate(i):
-    plot()
+    tmp = get_data()
+    plot(tmp)
 
 
 def monitor():
-    animation = FuncAnimation(plt.gcf(), animate)
-    plt.tight_layout()
-    plt.show()
+    cmd = "python " + get_abs_path("src", "utilities", "_monitor.py")
+    subprocess.call(cmd)
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, interrupt_handler)
-    monitor()
+    animation = FuncAnimation(plt.gcf(), animate)
+    plt.tight_layout()
+    plt.show()
