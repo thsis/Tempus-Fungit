@@ -7,7 +7,6 @@ from src.utilities import CONFIG, EXIT_EVENT
 logger = logging.getLogger(__name__)
 
 
-
 class Controller:
     def __init__(self):
         self.rules = {}
@@ -44,15 +43,18 @@ class Controller:
         arm_relays = {key: False for key in self.relays.keys()}
         for var, rule in self.rules.items():
             current_state = state[var]
-            if rule["check"] == "between" and (rule["lower"] <= current_state <= rule["upper"]):
-                for relay in rule["relays"]:
-                    arm_relays[relay] = True
-            if rule["check"] == "lower" and current_state < rule["lower"]:
-                for relay in rule["relays"]:
-                    arm_relays[relay] = True
-            if rule["check"] == "upper" and current_state > rule["upper"]:
-                for relay in rule["relays"]:
-                    arm_relays[relay] = True
+
+            if current_state is not None:
+                if rule["check"] == "between" and (rule["lower"] <= current_state <= rule["upper"]):
+                    for relay in rule["relays"]:
+                        arm_relays[relay] = True
+                if rule["check"] == "lower" and current_state < rule["lower"]:
+                    for relay in rule["relays"]:
+                        arm_relays[relay] = True
+                if rule["check"] == "upper" and current_state > rule["upper"]:
+                    for relay in rule["relays"]:
+                        arm_relays[relay] = True
+
         return arm_relays
 
     def control(self, state):
