@@ -79,18 +79,18 @@ class SensorArray:
         out = pd.DataFrame(readings)
         return out
 
-    def read(self, var, retries=None, delay=None):
-        retries = retries if retries is not None else self.retries
-        delay = delay if delay is not None else self.delay
-        readings = pd.DataFrame(s.read(var, retries, delay) for s in self.sensors if var in s.var2unit.keys())
-        if len(readings):
-            print(readings)
-            print(SENSOR_WEIGHTS)
-            merged = readings.merge(SENSOR_WEIGHTS)
-            # todo: implement weighted mean
-            return merged.loc[merged.weight > 0].value.mean()
-        else:
-            return np.nan
+    def get_state(self):
+        readings = self.take_sensor_readings()
+        state = (readings
+                 .merge(SENSOR_WEIGHTS, how="left")
+                 .fillna({"weight": 1})
+                 .assign(weighted_value=lambda x: x.value * x.weight)
+                 .groupby("variable")
+                 .weighted_value
+                 .mean())
+        now_hour = pd.Series(pd.Timestamp.now().hour, index=["hour_of_day"], name="variable")
+
+        return pd.concat([state, now_hour])
 
     def read_all(self, delay=None, retries=None):
         retries = retries if retries is not None else self.retries

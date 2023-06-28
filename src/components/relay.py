@@ -19,7 +19,7 @@ class Relay:
                    initial=self._get_turn_on_signal() if self.status else self._get_turn_off_signal())
 
     def __str__(self):
-        return f"Relay {Relay.counter}"
+        return f"Relay {self.channel}"
 
     def __del__(self):
         self.disarm()

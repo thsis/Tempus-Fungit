@@ -21,3 +21,4 @@ six==1.16.0
 psycopg2~=2.9.5
 setuptools~=60.2.0
 colorama~=0.4.6
+logdecorator==2.4

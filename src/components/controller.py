@@ -2,103 +2,89 @@ import logging
 import time
 from logdecorator import log_on_start, log_on_end, log_exception
 from src.components import Relay
-from src.utilities import EXIT_EVENT
+from src.utilities import CONFIG, EXIT_EVENT
 
 logger = logging.getLogger(__name__)
 
 
+
 class Controller:
-    def __init__(self,
-                 relays: list,
-                 active_min: float,
-                 active_max: float,
-                 delay: float):
-        self.relays = relays
-        self.active_min = active_min
-        self.active_max = active_max
-        self.delay = delay
+    def __init__(self):
+        self.rules = {}
+        self.relays = {}
+        self.relay_configs = {}
 
-    def __sanitize(self, t):
-        # handle t larger than maximum value
-        if t > self.active_max:
-            logger.debug(f"received {t} seconds --> truncating input to {self.active_max}.")
-            return self.active_max
+    def add(self, section):
+        var, options, relays = self._parse_section(section)
+        self.rules[var] = options
+        for relay in relays:
+            if relay not in self.relays:
+                self.relays[relay] = Relay(relay, options["active_low"])
 
-        # handle t smaller than min value
-        if t < self.active_min:
-            logger.debug(f"received {t} seconds --> truncating input to {self.active_min}.")
-            return self.active_min
+    def _parse_section(self, section):
+        options = dict(CONFIG[section])
+        var = options.pop("var")
+        relays = [int(i) for i in options.pop("relays").split(",")]
+        options["relays"] = relays
+        options["active_low"] = options["active_low"] == "True"
+        for key in "upper", "lower":
+            options[key] = float(options[key])
+        self._sanity_check_options()
+        return var, options, relays
 
-        if self.active_min <= t <= self.active_max:
-            logger.debug(f"received {t} seconds --> passing input through.")
-            return t
-
-    def activate_relay(self, seconds):
-        if seconds:
-            for relay in self.relays:
-                logger.debug(f"start {relay} for {seconds} seconds.")
-            for relay in self.relays:
-                relay.arm()
-            time.sleep(seconds)
-            for relay in self.relays:
-                relay.disarm()
-
-    def skip(self):
-        for relay in self.relays:
-            relay.disarm()
-
-        logger.debug(f"skip this round ({self.delay} seconds).")
-        time.sleep(self.delay)
-
-    @log_on_start(logging.INFO, "start run.")
-    @log_on_end(logging.INFO, "end of run.")
-    @log_exception("encountered error:")
-    def run(self, estimation_strategy, **kwargs):
-        while True:
-            if EXIT_EVENT.is_set():
-                break
-            try:
-                turn_on, active_time = estimation_strategy(**kwargs)
-                active_time = self.__sanitize(active_time)
-                if turn_on:
-                    self.activate_relay(active_time)
+    def _sanity_check_options(self):
+        for var, options in self.rules.items():
+            for relay in options["relays"]:
+                if relay not in self.relay_configs.keys():
+                    self.relay_configs[relay] = options["active_low"]
                 else:
-                    self.skip()
+                    assert self.relay_configs[relay] == options["active_low"], f"Relay {relay} is misconfigured."
 
-            except StopIteration:
-                break
+    def _get_initial_decisions(self, state):
+        arm_relays = {key: False for key in self.relays.keys()}
+        for var, rule in self.rules.items():
+            current_state = state[var]
+            if rule["check"] == "between" and (rule["lower"] <= current_state <= rule["upper"]):
+                for relay in rule["relays"]:
+                    arm_relays[relay] = True
+            if rule["check"] == "lower" and current_state < rule["lower"]:
+                for relay in rule["relays"]:
+                    arm_relays[relay] = True
+            if rule["check"] == "upper" and current_state > rule["upper"]:
+                for relay in rule["relays"]:
+                    arm_relays[relay] = True
+        return arm_relays
+
+    def control(self, state):
+        decisions = self._get_initial_decisions(state)
+        for pin, relay in self.relays.items():
+            if decisions[pin]:
+                relay.arm()
+            else:
+                relay.disarm()
 
 
 if __name__ == "__main__":
     import signal
-    from src.components import BH1750
+    from src.components import SensorArray, setup_sensors
     from src.utilities import CONFIG, get_abs_path, interrupt_handler, get_logger
 
 
     def main():
-        def random_lux_estimator():
-            bh1750 = BH1750(address=int(CONFIG.get("SENSORS", "address_bh1750"), base=16),
-                            site=CONFIG.get("GENERAL", "site"))
-            current_lux = bh1750.read("light_intensity")
-            logging.debug(f"currently: {current_lux} lux.")
-            if current_lux >= 100:
-                on = True
-                t = 2
-                logging.debug(f"send command to turn on sensor for {t} seconds.")
-            else:
-                on = False
-                t = 0
-                logging.debug(f"send command to turn sensor off.")
-            return on, t
+        sensors = setup_sensors(CONFIG)
+        sensor_array = SensorArray(sensors, retries=3, delay=2)
+        controller = Controller()
+        controller.add("CONTROLLER_CO2")
+        controller.add("CONTROLLER_HUMIDITY")
+        controller.add("CONTROLLER_LIGHTS")
 
-        relay = Relay(21)
-        controller = Controller([relay], active_min=1, active_max=3, delay=2)
-        controller.run(estimation_strategy=random_lux_estimator)
+        while True:
+            state = sensor_array.get_state()
+            controller.control(state)
+            time.sleep(50)
 
     rootLogger = get_logger(logging.DEBUG, get_abs_path("logs", "controller_demo.log"))
 
     rootLogger.debug("Debug logging test...")
     signal.signal(signal.SIGINT, interrupt_handler)
     main()
-
-

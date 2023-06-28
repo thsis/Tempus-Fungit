@@ -18,29 +18,8 @@ class MyConfigParser(ConfigParser):
         self.path = path
         self.read(self.path)
 
-    def get(self, section, option, *, raw=False, vars=None, fallback=_UNSET):
-        self.read(self.path)
-        try:
-            d = self._unify_values(section, vars)
-        except NoSectionError:
-            if fallback is _UNSET:
-                raise
-            else:
-                return fallback
-        option = self.optionxform(option)
-        try:
-            value = d[option]
-        except KeyError:
-            if fallback is _UNSET:
-                raise NoOptionError(option, section)
-            else:
-                return fallback
-
-        if raw or value is None:
-            return value
-        else:
-            return self._interpolation.before_get(self, section, option, value,
-                                                  d)
+    def update(self):
+        self.__init__(self.path)
 
     def get_controller_config(self, var):
         self.read(self.path)
@@ -53,10 +32,6 @@ class MyConfigParser(ConfigParser):
             "increases": self.getboolean(var, "increases", fallback=None),
             "target": self.getfloat(var, "target", fallback=None),
             "margin": self.getfloat(var, "margin", fallback=None),
-            "delay": self.getint(var, "delay"),
-            "active_min": self.getint(var, "active_min"),
-            "active_max": self.getint(var, "active_max"),
-            "unit": self.get(var, "unit"),
             "file_name": self.get(var, "file_name", fallback=None)}
         return out
 
