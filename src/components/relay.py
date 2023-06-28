@@ -24,8 +24,14 @@ class Relay:
 
     def __del__(self):
         self.disarm()
-        logger.debug(f"cleaning up {self.__str__()}")
-        GPIO.cleanup(self.channel)
+        try:
+            logger.debug(f"cleaning up {self.__str__()}")
+        except NameError:
+            pass
+        except Exception as e:
+            raise e
+        finally:
+            GPIO.cleanup(self.channel)
 
     def _get_turn_on_signal(self):
         if self.active_low:
