@@ -77,7 +77,7 @@ def animate(i):
 
 def monitor():
     cmd = "python " + get_abs_path("src", "utilities", "_monitor.py")
-    subprocess.call(cmd)
+    subprocess.call(cmd, shell=True)
 
 
 if __name__ == "__main__":
