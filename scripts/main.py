@@ -8,7 +8,9 @@ from src.components import Controller, setup_sensors, SensorArray
 
 def main(wait, write_every=1, display=True, notify=True):
     if display:
-        monitor()
+        monitor_thread = threading.Thread(target=monitor, daemon=True)
+        monitor_thread.start()
+        monitor_thread.join()
 
     iteration = 0
     day_1 = datetime.now() - timedelta(days=1)
@@ -41,6 +43,7 @@ if __name__ == "__main__":
     PARSER.add_argument("--write-every", type=int, default=1, help="report the sensor readings every x iterations")
     PARSER.add_argument("--no-display", action="store_true", default=False)
     PARSER.add_argument("--no-notify", action="store_true", default=False)
+    PARSER.add_argument("--log-level", choices=["debug", "info", "warn", "error"], default="error")
     ARGS = PARSER.parse_args()
 
     SECTIONS = ["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"]
