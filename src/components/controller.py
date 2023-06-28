@@ -42,7 +42,7 @@ class Controller:
     def _get_initial_decisions(self, state):
         arm_relays = {key: False for key in self.relays.keys()}
         for var, rule in self.rules.items():
-            current_state = state[var]
+            current_state = state.get(var)
 
             if current_state is not None:
                 if rule["check"] == "between" and (rule["lower"] <= current_state <= rule["upper"]):
