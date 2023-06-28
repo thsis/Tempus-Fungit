@@ -1,5 +1,5 @@
 import signal
-from src.utilities import CONFIG, get_logger, get_abs_path, LOG_LEVELS, interrupt_handler
+from src.utilities import CONFIG, get_logger, get_abs_path, LOG_LEVELS, interrupt_handler, EXIT_EVENT
 from src.components import setup_sensors, SensorArray
 
 
@@ -11,8 +11,10 @@ def main():
                                out_path=out_path,
                                retries=CONFIG.getint("SENSORS", "retries"),
                                delay=CONFIG.getint("SENSORS", "delay"))
-
-    sensor_array.read_all()
+    while True:
+        if EXIT_EVENT.is_set():
+            break
+        sensor_array.read_all()
 
 
 if __name__ == "__main__":

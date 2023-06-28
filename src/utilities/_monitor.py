@@ -42,7 +42,8 @@ def pretty_label(label):
     return " ".join([lab.capitalize() for lab in label.split("_")])
 
 
-def plot(df):
+def plot(fig_path=None):
+    df = get_data()
     variables = ["temperature", "humidity", "light_intensity", "co2"]
     for var, ax in zip(variables, axes.flatten()):
         ax.clear()
@@ -66,14 +67,20 @@ def plot(df):
         for i, label in enumerate(axes[-1, col].xaxis.get_ticklabels()):
             label.set_visible(i % 3 == 0)
 
+    if fig_path:
+        fig.save_fig(fig_path)
+
 
 def animate(i):
-    tmp = get_data()
-    plot(tmp)
+    plot()
+
+
+def monitor():
+    animation = FuncAnimation(plt.gcf(), animate)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, interrupt_handler)
-    animation = FuncAnimation(plt.gcf(), animate)
-    plt.tight_layout()
-    plt.show()
+    monitor()

@@ -7,6 +7,7 @@ from .relay import Relay
 from .controller import Controller
 
 
+
 def setup_sensors(config, dht22=True, bmp280=True, bh1750=True, scd30=True):
     assert any([dht22, bmp280, bh1750, scd30]), "Need to add at least one sensor."
     site = config.get("GENERAL", "site")

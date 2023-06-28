@@ -95,24 +95,22 @@ class SensorArray:
     def read_all(self, delay=None, retries=None):
         retries = retries if retries is not None else self.retries
         delay = delay if delay is not None else self.delay
-        while True:
-            if EXIT_EVENT.is_set():
+
+        for i in range(retries):
+            try:
+                results = self.take_sensor_readings()
+                if self.out_path:
+                    write_readings(results, self.out_path)
+                logger.debug(f"sleeping for {delay} seconds.")
+                time.sleep(delay)
                 break
-            for i in range(retries):
-                try:
-                    results = self.take_sensor_readings()
-                    if self.out_path:
-                        write_readings(results, self.out_path)
-                    logger.debug(f"sleeping for {delay} seconds.")
-                    time.sleep(delay)
-                    break
 
-                except Exception as e:
-                    if i + 1 == retries:
-                        logger.exception(e)
+            except Exception as e:
+                if i + 1 == retries:
+                    logger.exception(e)
 
-                except KeyboardInterrupt:
-                    break
+            except KeyboardInterrupt:
+                break
 
 
 I2C = board.I2C()
