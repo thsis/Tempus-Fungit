@@ -8,17 +8,24 @@ logger = logging.getLogger(__name__)
 
 
 class Controller:
-    def __init__(self):
+    def __init__(self, sections=None):
         self.rules = {}
         self.relays = {}
         self.relay_configs = {}
+        self.sections = sections if sections else []
 
     def add(self, section):
+        if section not in self.sections:
+            self.sections.append(section)
         var, options, relays = self._parse_section(section)
         self.rules[var] = options
         for relay in relays:
             if relay not in self.relays:
                 self.relays[relay] = Relay(relay, options["active_low"])
+
+    def update(self):
+        for section in self.sections:
+            self.add(section)
 
     def _parse_section(self, section):
         options = dict(CONFIG[section])
@@ -58,6 +65,7 @@ class Controller:
         return arm_relays
 
     def control(self, state):
+        self.update()
         decisions = self._get_initial_decisions(state)
         for pin, relay in self.relays.items():
             if decisions[pin]:
@@ -75,15 +83,13 @@ if __name__ == "__main__":
     def main():
         sensors = setup_sensors(CONFIG)
         sensor_array = SensorArray(sensors, retries=3, delay=2)
-        controller = Controller()
-        controller.add("CONTROLLER_CO2")
-        controller.add("CONTROLLER_HUMIDITY")
-        controller.add("CONTROLLER_LIGHTS")
+        controller = Controller(sections=["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"])
 
         while True:
+            CONFIG.update()
             state = sensor_array.get_state()
             controller.control(state)
-            time.sleep(50)
+            time.sleep(10)
 
     rootLogger = get_logger(logging.DEBUG, get_abs_path("logs", "controller_demo.log"))
 
