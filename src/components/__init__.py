@@ -17,6 +17,6 @@ def setup_sensors(config, dht22=True, bmp280=True, bh1750=True, scd30=True):
         sensors.append(BMP280(address=int(config.get("SENSORS", "address_bmp280"), base=16), site=site))
     if bh1750:
         sensors.append(BH1750(address=int(config.get("SENSORS", "address_bh1750"), base=16), site=site))
-    # if scd30:
-    #     sensors.append(SCD30(address=int(config.get("SENSORS", "address_scd30"), base=16), site=site))
+    if scd30:
+        sensors.append(SCD30(address=int(config.get("SENSORS", "address_scd30"), base=16), site=site))
     return sensors
