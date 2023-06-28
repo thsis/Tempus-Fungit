@@ -8,9 +8,7 @@ from src.components import Controller, setup_sensors, SensorArray
 
 def main(wait, write_every=1, display=True, notify=True):
     if display:
-        monitor_thread = threading.Thread(target=monitor, name="MONITOR", daemon=True)
-        monitor_thread.start()
-        monitor_thread.join()
+        monitor()
 
     iteration = 0
     day_1 = datetime.now() - timedelta(days=1)
