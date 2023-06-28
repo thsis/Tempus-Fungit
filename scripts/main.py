@@ -10,7 +10,7 @@ def main(wait, write_every=1, display=True, notify=True):
     if display:
         monitor_thread = threading.Thread(target=monitor, daemon=True)
         monitor_thread.start()
-        monitor_thread.join()
+
 
     iteration = 0
     day_1 = datetime.now() - timedelta(days=1)
