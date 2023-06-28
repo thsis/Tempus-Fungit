@@ -41,8 +41,8 @@ if __name__ == "__main__":
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("wait", type=int, help="seconds to wait between relay adjustments")
     PARSER.add_argument("--write-every", type=int, default=1, help="report the sensor readings every x iterations")
-    PARSER.add_argument("--no-display", type=bool, action="store_true", default=False)
-    PARSER.add_argument("--no-notify", type=bool, action="store_true", default=False)
+    PARSER.add_argument("--no-display", action="store_true", default=False)
+    PARSER.add_argument("--no-notify", action="store_true", default=False)
     ARGS = PARSER.parse_args()
 
     SECTIONS = ["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"]
