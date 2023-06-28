@@ -68,7 +68,7 @@ def plot(fig_path=None):
             label.set_visible(i % 3 == 0)
 
     if fig_path:
-        fig.save_fig(fig_path)
+        fig.savefig(fig_path)
 
 
 def animate(i):
