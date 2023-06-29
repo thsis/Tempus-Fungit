@@ -4,7 +4,7 @@ import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from picamera2 import Picamera
+from picamera import Picamera
 from src.utilities import get_abs_path, CONFIG, interrupt_handler
 plt.style.use("dark_background")
 
@@ -85,7 +85,7 @@ def monitor():
 
 
 def take_photo(photo_name, size=(1600, 1200)):
-     picam = Picamera2()
+     picam = Picamera()
      config = picam.create_preview_configuration(main={"size": size})
      picam.configure(config)
 
