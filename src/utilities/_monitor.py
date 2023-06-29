@@ -1,7 +1,6 @@
 import signal
 import subprocess
 import pandas as pd
-import libcamera
 from collections import defaultdict
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -85,10 +84,9 @@ def monitor():
     subprocess.call(cmd, shell=True)
 
 
-def take_photo(photo_name, hflip=1, vflip=1, size=(1600, 1200)):
+def take_photo(photo_name, size=(1600, 1200)):
      picam = Picamera2()
      config = picam.create_preview_configuration(main={"size": size})
-     config["transform"] = libcamera.Transform(hflip=hflip, vflip=vflip)
      picam.configure(config)
 
      picam.start_preview(Preview.QTGL)
