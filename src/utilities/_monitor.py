@@ -1,9 +1,11 @@
 import signal
 import subprocess
 import pandas as pd
+import libcamera
 from collections import defaultdict
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+from picamera2 import Picamera
 from src.utilities import get_abs_path, CONFIG, interrupt_handler
 plt.style.use("dark_background")
 
@@ -39,7 +41,10 @@ def get_data():
 
 
 def pretty_label(label):
-    return " ".join([lab.capitalize() for lab in label.split("_")])
+    if label in ["co2"]:
+        return label.upper()
+    else:
+        return " ".join([lab.capitalize() for lab in label.split("_")])
 
 
 def plot(fig_path=None):
@@ -78,6 +83,20 @@ def animate(i):
 def monitor():
     cmd = "python " + get_abs_path("src", "utilities", "_monitor.py")
     subprocess.call(cmd, shell=True)
+
+
+def take_photo(photo_name, hflip=1, vflip=1, size=(1600, 1200)):
+     picam = Picamera2()
+     config = picam.create_preview_configuration(main={"size": size})
+     config["transform"] = libcamera.Transform(hflip=hflip, vflip=vflip)
+     picam.configure(config)
+
+     picam.start_preview(Preview.QTGL)
+     picam.start()
+     time.sleep(2)
+     picam.capture_file(photo_name)
+
+     picam.close()
 
 
 if __name__ == "__main__":

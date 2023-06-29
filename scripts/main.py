@@ -11,8 +11,7 @@ def main(wait, write_every=1, display=True, notify=True):
         monitor_thread = threading.Thread(target=monitor, daemon=True)
         monitor_thread.start()
 
-
-    iteration = 0
+    iteration = -1
     day_1 = datetime.now() - timedelta(days=1)
 
     while True:
@@ -25,7 +24,7 @@ def main(wait, write_every=1, display=True, notify=True):
         CONTROLLER.control(env_state)
 
         # write to csv
-        if iteration % write_every:
+        if iteration % write_every == 0:
             SENSOR_ARRAY.read_all()
 
         # send photo and monitor plot
@@ -43,13 +42,14 @@ if __name__ == "__main__":
     PARSER.add_argument("--write-every", type=int, default=1, help="report the sensor readings every x iterations")
     PARSER.add_argument("--no-display", action="store_true", default=False)
     PARSER.add_argument("--no-notify", action="store_true", default=False)
-    PARSER.add_argument("--log-level", choices=["debug", "info", "warn", "error"], default="error")
+    PARSER.add_argument("--log-level", choices=["debug", "info", "warn", "error"], default="error",
+                        help="controls detail of logs")
     ARGS = PARSER.parse_args()
 
     SECTIONS = ["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"]
     LOG_PATH = get_abs_path("logs", "main.log")
     FIG_PATH = get_abs_path("figures", CONFIG.get("GENERAL", "monitor_file_name"))
-    LOGGER = get_logger(LOG_LEVELS["debug"], LOG_PATH,
+    LOGGER = get_logger(LOG_LEVELS[ARGS.log_level], LOG_PATH,
                         fmt="%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s] %(message)s")
 
     SENSORS = setup_sensors(CONFIG)
