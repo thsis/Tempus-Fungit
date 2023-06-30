@@ -85,7 +85,7 @@ def monitor():
 
 
 def take_photo(photo_name):
-    cmd = f"libcamera-jpog -o {photo_name}"
+    cmd = f"libcamera-jpeg -o {photo_name}"
     subprocess.call(cmd, shell=True)
 
 
