@@ -84,11 +84,6 @@ def monitor():
     subprocess.call(cmd, shell=True)
 
 
-def take_photo(photo_name):
-    cmd = f"libcamera-jpeg -o {photo_name}"
-    subprocess.call(cmd, shell=True)
-
-
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, interrupt_handler)
     animation = FuncAnimation(plt.gcf(), animate)

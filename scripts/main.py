@@ -1,22 +1,36 @@
 import signal
 import threading
 import time
-from datetime import datetime, timedelta
-from src.utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS, monitor, plot
+from src.utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, LOG_LEVELS
+from src.monitoring import monitor, plot, take_photo, send_email
 from src.components import Controller, setup_sensors, SensorArray
 
+SECONDS_PER_MINUTE = 60
+SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE
+SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR
 
-def main(wait, write_every=1, display=True, notify=True):
+
+def iteration_to_time_period_converter(wait_period, activate_every="day"):
+    i = -1
+    seconds = {"minute": SECONDS_PER_MINUTE, "hour": SECONDS_PER_HOUR, "day": SECONDS_PER_DAY}
+    mod = seconds[activate_every] // wait_period
+    while True:
+        i += 1
+        yield i % mod == 0
+
+
+def main(wait, write_every="hour", photo_every="day", display=True, notify=True):
+    write = iteration_to_time_period_converter(wait, write_every)
+    photo = iteration_to_time_period_converter(wait, photo_every)
+
     if display:
         monitor_thread = threading.Thread(target=monitor, daemon=True)
         monitor_thread.start()
 
     iteration = -1
-    day_1 = datetime.now() - timedelta(days=1)
 
     while True:
         iteration += 1
-        day_1, day_2 = datetime.now(), day_1
 
         # control environment
         CONFIG.update()
@@ -24,13 +38,14 @@ def main(wait, write_every=1, display=True, notify=True):
         CONTROLLER.control(env_state)
 
         # write to csv
-        if iteration % write_every == 0:
+        if next(write):
             SENSOR_ARRAY.read_all()
 
         # send photo and monitor plot
-        if notify and day_1.date() != day_2.date():
-            # todo: add functionality for sending emails
+        if next(photo):
             plot(FIG_PATH)
+            take_photo(PHOTO_PATH)
+            send_email()
 
         time.sleep(wait)
 
@@ -49,6 +64,7 @@ if __name__ == "__main__":
     SECTIONS = ["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"]
     LOG_PATH = get_abs_path("logs", "main.log")
     FIG_PATH = get_abs_path("figures", CONFIG.get("GENERAL", "monitor_file_name"))
+    PHOTO_PATH = get_abs_path("figures", CONFIG.get("GENERAL", "photo_file_name"))
     LOGGER = get_logger(LOG_LEVELS[ARGS.log_level], LOG_PATH,
                         fmt="%(asctime)s [%(levelname)s] [%(threadName)s] [%(funcName)s] %(message)s")
 
