@@ -4,7 +4,7 @@ import time
 import signal
 import threading
 import logging
-from configparser import ConfigParser, NoSectionError, NoOptionError
+from configparser import ConfigParser
 from pathlib import Path
 
 

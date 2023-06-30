@@ -80,7 +80,7 @@ def animate(i):
 
 
 def monitor():
-    cmd = "python " + get_abs_path("src", "utilities", "_monitor.py")
+    cmd = "python " + get_abs_path("src", "monitoring", "_monitor.py")
     subprocess.call(cmd, shell=True)
 
 
