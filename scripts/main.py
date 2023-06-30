@@ -45,7 +45,8 @@ def main(wait, write_every="hour", photo_every="day", display=True, notify=True)
         if next(photo):
             plot(FIG_PATH)
             take_photo(PHOTO_PATH)
-            send_email()
+            if notify:
+                send_email()
 
         time.sleep(wait)
 
@@ -54,7 +55,10 @@ if __name__ == "__main__":
     import argparse
     PARSER = argparse.ArgumentParser()
     PARSER.add_argument("wait", type=int, help="seconds to wait between relay adjustments")
-    PARSER.add_argument("--write-every", type=int, default=1, help="report the sensor readings every x iterations")
+    PARSER.add_argument("--write-every", choices=["minute", "hour", "day"], default="hour",
+                        help="report the sensor readings every x iterations")
+    PARSER.add_argument("--photo-every", choices=["minute", "hour", "day"], default="day",
+                        help="report the sensor readings every x iterations")
     PARSER.add_argument("--no-display", action="store_true", default=False)
     PARSER.add_argument("--no-notify", action="store_true", default=False)
     PARSER.add_argument("--log-level", choices=["debug", "info", "warn", "error"], default="error",
@@ -79,5 +83,6 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, interrupt_handler)
     main(wait=ARGS.wait,
          write_every=ARGS.write_every,
+         photo_every=ARGS.photo_every,
          display=not ARGS.no_display,
          notify=not ARGS.no_notify)
