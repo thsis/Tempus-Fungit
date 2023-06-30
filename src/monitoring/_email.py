@@ -68,9 +68,9 @@ class NotificationHandler:
 
     def __get_analysis(self, data):
         out = "<p><h2>Freshness Tests</h2>"
-        out += self.__check_freshness(self.env_monitor_path)
-        out += self.__check_freshness(self.env_photo_path)
-        out += self.__check_freshness(self.env_data_path, ctime=False)
+        out += self.__check_freshness_access_date(self.env_monitor_path)
+        out += self.__check_freshness_access_date(self.env_photo_path)
+        out += self.__check_freshness_data(data)
         out += "</p>\n<p><h2>Sensor Tests</h2>"
         out += self.__check_sensors(data)
         out += "</p>\n<p><h2>Summary</h2>"
@@ -100,9 +100,9 @@ class NotificationHandler:
         elif self.tests_failed > 1:
             return f"<p>problems detected: {self.tests_failed} tests failed.</p>"
 
-    def __check_freshness(self, path, ctime=True):
+    def __check_freshness_access_date(self, path):
         name = Path(path).name
-        created = os.path.getctime(path) if ctime else os.path.getatime(path)
+        created = os.path.getctime(path)
         now = datetime.now().timestamp()
         # check if file is older than one day
         passed = (now - created) <= 24 * 60 * 60
@@ -146,6 +146,14 @@ class NotificationHandler:
     def construct_attachments(self):
         self.attach(self.env_monitor_path, "image", "png")
         self.attach(self.env_photo_path, "image", "jpg")
+
+    def __check_freshness_data(self, data):
+        passed = pd.Timestamp.now() - data.taken_at.max() <= pd.Timedelta(days=1)
+        name = Path(self.env_data_path).name
+        res = "passed" if passed else "failed"
+        if not passed:
+            self.tests_failed += 1
+        return f"<p> freshness test for {name} ... {res}.</p>\n"
 
 
 def send_email():
