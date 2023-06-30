@@ -4,7 +4,7 @@ import pandas as pd
 from collections import defaultdict
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from picamera import Picamera
+
 from src.utilities import get_abs_path, CONFIG, interrupt_handler
 plt.style.use("dark_background")
 
@@ -84,17 +84,9 @@ def monitor():
     subprocess.call(cmd, shell=True)
 
 
-def take_photo(photo_name, size=(1600, 1200)):
-     picam = Picamera()
-     config = picam.create_preview_configuration(main={"size": size})
-     picam.configure(config)
-
-     picam.start_preview(Preview.QTGL)
-     picam.start()
-     time.sleep(2)
-     picam.capture_file(photo_name)
-
-     picam.close()
+def take_photo(photo_name):
+    cmd = f"libcamera-jpog -o {photo_name}"
+    subprocess.call(cmd, shell=True)
 
 
 if __name__ == "__main__":
