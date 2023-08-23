@@ -30,25 +30,29 @@ def main(wait, write_every="hour", photo_every="day", display=True, notify=True)
     iteration = -1
 
     while True:
-        iteration += 1
+        try:
+            iteration += 1
 
-        # control environment
-        CONFIG.update()
-        env_state = SENSOR_ARRAY.get_state()
-        CONTROLLER.control(env_state)
+            # control environment
+            CONFIG.update()
+            env_state = SENSOR_ARRAY.get_state()
+            CONTROLLER.control(env_state)
 
-        # write to csv
-        if next(write):
-            SENSOR_ARRAY.read_all()
+            # write to csv
+            if next(write):
+                SENSOR_ARRAY.read_all()
 
-        # send photo and monitor plot
-        if next(photo):
-            plot(FIG_PATH)
-            take_photo(PHOTO_PATH)
-            if notify:
-                send_email()
+            # send photo and monitor plot
+            if next(photo):
+                plot(FIG_PATH)
+                take_photo(PHOTO_PATH)
+                if notify:
+                    send_email()
 
-        time.sleep(wait)
+            time.sleep(wait)
+        except Exception as e:
+            LOGGER.error(e)
+            continue
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from copy import copy
-from src.utilities import get_abs_path
+from src.utilities import get_abs_path, unnest_df
 from colorama import Style, Fore
 from dataclasses import dataclass
 from tqdm import trange
@@ -258,7 +258,7 @@ def main(args):
                     capacity=args.capacity,
                     weeks=args.weeks,
                     blocks=args.blocks,
-                    harvest_strategy=harvest_after_j_weeks, harvest_kwargs= {"j": args.grow_time},
+                    harvest_strategy=harvest_after_j_weeks, harvest_kwargs={"j": args.grow_time},
                     remove_strategy=remove_after_infection_or_k_flushes, remove_kwargs={"k": args.remove_after_flush},
                     block_kwargs=block_kwargs)
 
@@ -269,16 +269,22 @@ def main(args):
 
     blocks = (data
               .groupby(["replication", "week"])
-              .agg({"block_id": "nunique", "infected": "sum"})
-              .rename(columns={"block_id": "number_of_blocks",
-                               "infected": "number_of_infected_blocks"})
+              .agg({"block_id": ["nunique", "max"], "infected": "sum"})
+              .pipe(unnest_df)
+              .rename(columns={"block_id_nunique": "number_of_blocks",
+                               "block_id_max": "last_block",
+                               "infected_sum": "number_of_infected_blocks"})
+              .assign(prev_last_block=lambda x: x.last_block.shift(),
+                      number_of_new_blocks=lambda x: x.last_block - x.prev_last_block)
               .reset_index())
 
-    p_harvest = sns.violinplot(data=harvests, x="week", y="harvested")
+    p_harvest = sns.boxplot(data=harvests, x="week", y="harvested")
     plt.show()
-    p_block_total = sns.violinplot(data=blocks, x="week", y="number_of_blocks")
+    p_block_total = sns.boxplot(data=blocks, x="week", y="number_of_blocks")
     plt.show()
-    p_block_infected = sns.violinplot(data=blocks, x="week", y="number_of_infected_blocks")
+    p_block_infected = sns.boxplot(data=blocks, x="week", y="number_of_infected_blocks")
+    plt.show()
+    p_block_new = sns.boxplot(data=blocks, x="week", y="number_of_new_blocks")
     plt.show()
 
     if args.outfile:
@@ -286,10 +292,7 @@ def main(args):
         p_harvest.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_harvest.png"))
         p_block_total.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_blocks_total.png"))
         p_block_infected.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_blocks_infected.png"))
-
-
-
-# todo: add visualizations
+        p_block_new.figure.savefig(get_abs_path("analysis", "figures", f"{args.outfile}_blocks_new.png"))
 
 
 if __name__ == "__main__":
@@ -298,15 +301,15 @@ if __name__ == "__main__":
     parser.add_argument("--simulation-mode", default="const")
     parser.add_argument("--yield-decay-mode", default="linear")
     parser.add_argument("--bag-weight", default=1000, type=float)
-    parser.add_argument("--max-lifetime-factor", default=0.5, type=float)
-    parser.add_argument("--mean-t-colonization", default=6, type=float)
-    parser.add_argument("--mean-t-fruiting", default=6, type=float)
+    parser.add_argument("--max-lifetime-factor", default=0.25, type=float)
+    parser.add_argument("--mean-t-colonization", default=4, type=float)
+    parser.add_argument("--mean-t-fruiting", default=2, type=float)
     parser.add_argument("--p-infection", default=0.25, type=float)
     parser.add_argument("--replications", default=100, type=int)
     parser.add_argument("--weeks", default=52, type=int)
     parser.add_argument("--blocks", default=8, type=int)
     parser.add_argument("--capacity", default=None, type=int)
-    parser.add_argument("--grow-time", default=8, type=int)
+    parser.add_argument("--grow-time", default=2, type=int)
     parser.add_argument("--remove-after-flush", default=3, type=int)
     parser.add_argument("--outfile", default=None)
 

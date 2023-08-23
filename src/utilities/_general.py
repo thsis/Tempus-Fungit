@@ -70,6 +70,12 @@ def get_logger(level, path_to_log_file=None, fmt=None):
     return logger
 
 
+def unnest_df(df):
+    out = df.copy()
+    out.columns = ["_".join(c) for c in df.columns]
+    return out
+
+
 LOG_LEVELS = {
     "info": logging.INFO,
     "warn": logging.WARNING,

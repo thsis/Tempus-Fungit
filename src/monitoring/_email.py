@@ -20,6 +20,7 @@ BODY = dedent("""\
             {analysis}
         </p>
         <p>
+            <h2>Current Sensor Readings</h2>
             {table}
         </p>
     </body>
