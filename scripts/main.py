@@ -21,7 +21,7 @@ def iteration_to_time_period_converter(wait_period, activate_every="day"):
 
 def main(wait, write_every="hour", photo_every="day", display=True, notify=True):
     write = iteration_to_time_period_converter(wait, write_every)
-    photo = iteration_to_time_period_converter(wait, photo_every)
+    photo = iteration_to_time_period_converter(wait, photo_every) if photo_every is not None else None
 
     if display:
         monitor_thread = threading.Thread(target=monitor, daemon=True)
@@ -43,11 +43,12 @@ def main(wait, write_every="hour", photo_every="day", display=True, notify=True)
                 SENSOR_ARRAY.read_all()
 
             # send photo and monitor plot
-            if next(photo):
-                plot(FIG_PATH)
-                take_photo(PHOTO_PATH)
-                if notify:
-                    send_email()
+            if photo is not None:
+                if next(photo):
+                    plot(FIG_PATH)
+                    take_photo(PHOTO_PATH)
+                    if notify:
+                        send_email()
 
             time.sleep(wait)
         except Exception as e:
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     PARSER.add_argument("wait", type=int, help="seconds to wait between relay adjustments")
     PARSER.add_argument("--write-every", choices=["minute", "hour", "day"], default="hour",
                         help="report the sensor readings every x iterations")
-    PARSER.add_argument("--photo-every", choices=["minute", "hour", "day"], default="day",
+    PARSER.add_argument("--photo-every", choices=["minute", "hour", "day", None], default=None,
                         help="report the sensor readings every x iterations")
     PARSER.add_argument("--no-display", action="store_true", default=False)
     PARSER.add_argument("--no-notify", action="store_true", default=False)
