@@ -86,10 +86,15 @@ if __name__ == "__main__":
         controller = Controller(sections=["CONTROLLER_CO2", "CONTROLLER_HUMIDITY", "CONTROLLER_LIGHTS"])
 
         while True:
-            CONFIG.update()
-            state = sensor_array.get_state()
-            controller.control(state)
-            time.sleep(10)
+            try:
+                CONFIG.update()
+                state = sensor_array.get_state()
+                controller.control(state)
+            except Exception as e:
+                rootLogger.exception(e)
+            finally:
+                time.sleep(10)
+
 
     rootLogger = get_logger(logging.DEBUG, get_abs_path("logs", "controller_demo.log"))
 

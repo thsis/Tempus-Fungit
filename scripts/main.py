@@ -49,11 +49,12 @@ def main(wait, write_every="hour", photo_every="day", display=True, notify=True)
                     take_photo(PHOTO_PATH)
                     if notify:
                         send_email()
-
-            time.sleep(wait)
         except Exception as e:
             LOGGER.error(e)
             continue
+
+        finally:
+            time.sleep(wait)
 
 
 if __name__ == "__main__":
