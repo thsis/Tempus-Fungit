@@ -48,18 +48,25 @@ class Controller:
 
     def _get_initial_decisions(self, state):
         arm_relays = {key: False for key in self.relays.keys()}
+        logger.debug("initial relay arming decisions")
         for var, rule in self.rules.items():
             current_state = state.get(var)
 
             if current_state is not None:
                 if rule["check"] == "between" and (rule["lower"] <= current_state <= rule["upper"]):
                     for relay in rule["relays"]:
+                        msg = "turn on {} because current value of {}: {} < {:.2f} < {}"
+                        logger.debug(msg.format(relay, var, rule['lower'], current_state, rule['upper']))
                         arm_relays[relay] = True
                 if rule["check"] == "lower" and current_state < rule["lower"]:
                     for relay in rule["relays"]:
+                        msg = f"turn on {relay} because current value of {var}: {current_state:.2f} < {rule['lower']}"
+                        logger.debug(msg)
                         arm_relays[relay] = True
                 if rule["check"] == "upper" and current_state > rule["upper"]:
                     for relay in rule["relays"]:
+                        msg = f"turn on {relay} because current value of {var}: {current_state:.2f} > {rule['upper']}"
+                        logger.debug(msg)
                         arm_relays[relay] = True
 
         return arm_relays
