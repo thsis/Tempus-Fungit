@@ -1,3 +1,4 @@
+import logging
 import signal
 import threading
 import time
@@ -5,6 +6,7 @@ from src.utilities import get_abs_path, CONFIG, interrupt_handler, get_logger, L
 from src.monitoring import monitor, plot, take_photo, send_email
 from src.components import Controller, setup_sensors, SensorArray
 
+logger = logging.getLogger(__name__)
 SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE
 SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR
@@ -50,7 +52,7 @@ def main(wait, write_every="hour", photo_every="day", display=True, notify=True)
                     if notify:
                         send_email()
         except Exception as e:
-            LOGGER.error(e)
+            LOGGER.exception(e)
             continue
 
         finally:

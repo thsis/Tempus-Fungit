@@ -5,6 +5,7 @@ import time
 import board
 import numpy as np
 import pandas as pd
+from logdecorator import log_on_start, log_on_end, log_exception
 from src.utilities import Record, EXIT_EVENT
 
 
@@ -19,6 +20,9 @@ SENSOR_WEIGHTS = pd.DataFrame({
 })
 
 
+@log_on_start(logging.DEBUG, "write readings to disk")
+@log_on_end(logging.DEBUG, "done writing")
+@log_exception("error while writing")
 def write_readings(readings, out_path):
     if not os.path.exists(out_path):
         readings.to_csv(out_path, index=False)
@@ -34,10 +38,12 @@ class Sensor:
         super(Sensor, self).__init__()
 
     def read_all(self, retries=5, delay=1):
+        logger.debug("start reading all variables")
         readings = [self.read(var=var, retries=retries, delay=delay) for var in self.var2unit.keys()]
         return readings
 
     def read(self, var, retries=5, delay=1):
+        logger.debug(f"start reading {var}")
         sensor_name = self.__class__.__name__
         assert var in self.var2unit.keys(), f"{sensor_name} is not a sensor for '{var}'. Maybe check spelling?"
         unit = self.var2unit[var]
@@ -49,6 +55,7 @@ class Sensor:
                                  unit,
                                  getattr(self.device, var))
                 assert reading.value is not None, f"could not read {var} on sensor {sensor_name}."
+                logger.debug(f"reading received for {var}: {reading.value} {unit} after {i+1} tries.")
                 return reading
             except (RuntimeError, AssertionError) as e:
                 logger.warning(e)
@@ -68,6 +75,7 @@ class SensorArray:
         self.delay = delay
 
     def take_sensor_readings(self):
+        logger.debug("read sensors from sensor array")
         readings = list(
             itertools.chain.from_iterable(
                 [sensor.read_all(retries=self.retries) for sensor in self.sensors]))
